@@ -98,7 +98,7 @@ import ZegoExpressEngine from 'zego-express-engine-reactnative';
 export default class App extends Component<{}> {
 
     componentDidMount() {
-        ZegoExpressEngine.createEngine(1234567890, 'abcdefghijklmnopqrstuvwzyv123456789abcdefghijklmnopqrstuvwzyz123').then((engine) => {
+        ZegoExpressEngine.createEngineWithProfile({appID: 1234567890, scenario: ZegoScenario.General}).then((engine) => {
             if(engine != undefined)
                 console.log("init sdk success");
             else

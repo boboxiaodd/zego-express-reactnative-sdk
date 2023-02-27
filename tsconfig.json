@@ -73,6 +73,7 @@
   "include": [
      "./src"
   ],
+  // typedoc version < 0.20.0, e.g: 0.19.2
   "typedocOptions": {
     "ignoreCompilerErrors": true,
     "mode": "modules",

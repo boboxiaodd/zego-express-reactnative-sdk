@@ -18,9 +18,11 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => "9.0" }
   s.source       = { :path => '.'}
 
-  s.source_files = "ios/**/*.{h,c,m,mm,swift}"
+  s.source_files = "ios/src/*.{h,m,mm}"
   s.requires_arc = true
-
+  s.subspec 'FaceUnity' do |ss|
+    ss.source_files = "ios/src/FaceUnity/**/*.{h,m,mm}"
+  end
   s.dependency "React"
   s.dependency 'ZegoExpressEngine', '3.2.0'
   s.dependency 'FURenderKit'

@@ -3,6 +3,8 @@
 #import <React/RCTConvert.h>
 #import "ZegoCustomVideoProcessManager.h"
 #import "ZegoLog.h"
+#import <FaceUnity/FUManager.h>
+#import <FURenderKit/FURenderKit.h>
 
 static NSString* PREFIX = @"im.zego.reactnative.";
 
@@ -15,7 +17,7 @@ ZegoEventHandler,
 ZegoApiCalledEventHandler,
 ZegoMediaPlayerEventHandler,
 ZegoAudioEffectPlayerEventHandler,
-ZegoReactNativeCustomVideoProcessHandler
+ZegoCustomVideoProcessHandler
 >
 
 @property (nonatomic, assign) BOOL hasListeners;
@@ -46,14 +48,25 @@ RCT_EXPORT_MODULE()
     return @{@"prefix": PREFIX};
 }
 
-#pragma mark ZegoReactNativeCustomVideoProcessHandler
-- (void)onStart:(int)channel {
+#pragma mark ZegoCustomVideoProcessHandler
+
+- (void)onStart:(ZegoPublishChannel)channel{
     
 }
-- (void)onStop:(int)channel {
+- (void)onStop:(ZegoPublishChannel)channel{
     
 }
+
 - (CVPixelBufferRef)onProcessImageBuffer:(CVPixelBufferRef)buffer {
+    if ([FUManager shareManager].isRender) {
+        FURenderInput *input = [[FURenderInput alloc] init];
+        input.renderConfig.imageOrientation = FUImageOrientationUP;
+        input.pixelBuffer = buffer;
+        //开启重力感应，内部会自动计算正确方向，设置fuSetDefaultRotationMode，无须外面设置
+        input.renderConfig.gravityEnable = YES;
+        FURenderOutput *output = [[FURenderKit shareRenderKit] renderWithInput:input];
+        return output.pixelBuffer;
+    }
     return buffer;
 }
 
@@ -132,6 +145,18 @@ RCT_EXPORT_METHOD(createEngine:(NSUInteger)appID
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     [ZegoExpressEngine createEngineWithAppID:(unsigned int)appID appSign:appSign isTestEnv:isTestEnv scenario:(ZegoScenario)scenario eventHandler:self];
+    
+    
+    ZegoCustomVideoRenderConfig *renderConfig = [[ZegoCustomVideoRenderConfig alloc] init];
+    renderConfig.bufferType = ZegoVideoBufferTypeCVPixelBuffer;
+    renderConfig.frameFormatSeries = ZegoVideoFrameFormatSeriesRGB;
+    renderConfig.enableEngineRender = YES;
+
+    // Enable custom video render
+    [[ZegoExpressEngine sharedEngine] enableCustomVideoRender:YES config:renderConfig];
+    [[ZegoExpressEngine sharedEngine] setCustomVideoProcessHandler:self];
+    
+    
 #pragma clang diagnostic pop
     kIsInited = true;
     resolve(nil);

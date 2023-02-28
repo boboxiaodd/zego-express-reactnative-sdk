@@ -24,6 +24,7 @@ Pod::Spec.new do |s|
   s.dependency "React"
   s.dependency 'ZegoExpressEngine', '3.2.0'
   s.dependency 'FURenderKit'
+  s.dependency 'FaceUnity', :git => 'https://github.com/boboxiaodd/FaceUnity.git'
   # ...
   # s.dependency "..."
 end

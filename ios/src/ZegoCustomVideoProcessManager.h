@@ -20,7 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)onStop:(int)channel;
 
-- (void)onProcessImageBuffer:(CVPixelBufferRef)buffer;
+- (CVPixelBufferRef)onProcessImageBuffer:(CVPixelBufferRef)buffer;
 
 @end
 

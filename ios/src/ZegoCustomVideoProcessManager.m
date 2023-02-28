@@ -31,9 +31,9 @@
 #pragma mark - ZegoCustomVideoProcessHandler
 - (void)onCapturedUnprocessedCVPixelBuffer:(CVPixelBufferRef)buffer timestamp:(CMTime)timestamp channel:(ZegoPublishChannel)channel {
     if ([self.handler respondsToSelector:@selector(onProcessImageBuffer:)]) {
-        [self.handler onProcessImageBuffer:buffer];
+        CVPixelBufferRef newBuffer = [self.handler onProcessImageBuffer:buffer];
+        [[ZegoExpressEngine sharedEngine] sendCustomVideoProcessedCVPixelBuffer:newBuffer timestamp:timestamp channel:channel];
     }
-    [[ZegoExpressEngine sharedEngine] sendCustomVideoProcessedCVPixelBuffer:buffer timestamp:timestamp channel:channel];
 }
 
 - (void)onStart:(ZegoPublishChannel)channel {

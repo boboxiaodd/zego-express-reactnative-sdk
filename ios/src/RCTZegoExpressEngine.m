@@ -14,7 +14,8 @@ static BOOL kIsInited = false;
 ZegoEventHandler,
 ZegoApiCalledEventHandler,
 ZegoMediaPlayerEventHandler,
-ZegoAudioEffectPlayerEventHandler
+ZegoAudioEffectPlayerEventHandler,
+ZegoReactNativeCustomVideoProcessHandler
 >
 
 @property (nonatomic, assign) BOOL hasListeners;
@@ -44,6 +45,18 @@ RCT_EXPORT_MODULE()
 {
     return @{@"prefix": PREFIX};
 }
+
+#pragma mark ZegoReactNativeCustomVideoProcessHandler
+- (void)onStart:(int)channel {
+    
+}
+- (void)onStop:(int)channel {
+    
+}
+- (CVPixelBufferRef)onProcessImageBuffer:(CVPixelBufferRef)buffer {
+    return buffer;
+}
+
 
 -(void)startObserving {
     // Set up any upstream listeners or background tasks as necessary

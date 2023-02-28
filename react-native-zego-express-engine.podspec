@@ -20,6 +20,7 @@ Pod::Spec.new do |s|
 
   s.source_files = "ios/**/*.{h,c,m,mm,swift}"
   s.requires_arc = true
+  s.resources = ['FaceUnity/Resource/*']
 
   s.dependency "React"
   s.dependency 'ZegoExpressEngine', '3.2.0'

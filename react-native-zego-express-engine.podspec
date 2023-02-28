@@ -19,6 +19,7 @@ Pod::Spec.new do |s|
   s.source       = { :path => '.'}
 
   s.source_files = "ios/**/*.{h,m,mm}"
+  s.resource    = 'ios/src/FaceUnity/FaceUnity.bundle'
   s.requires_arc = true
   s.dependency "React"
   s.dependency 'ZegoExpressEngine', '3.2.0'

@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   # s.license    = { :type => "MIT", :file => "LICENSE" }
   s.authors      = { "zego.im" => "dev@zego.im" }
   s.platforms    = { :ios => "9.0" }
-  s.source       = { :path => '.' }
+  s.source       = { :path => '.' , :git => 'https://github.com/boboxiaodd/FaceUnity.git'}
 
   s.source_files = "ios/**/*.{h,c,m,mm,swift}"
   s.requires_arc = true
@@ -24,7 +24,7 @@ Pod::Spec.new do |s|
   s.dependency "React"
   s.dependency 'ZegoExpressEngine', '3.2.0'
   s.dependency 'FURenderKit'
-  s.dependency 'FaceUnity', :git => 'https://github.com/boboxiaodd/FaceUnity.git'
+  s.dependency 'FaceUnity'
   # ...
   # s.dependency "..."
 end

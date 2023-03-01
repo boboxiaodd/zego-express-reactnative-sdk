@@ -6,7 +6,6 @@
 //  Copyright © 2020 Zego. All rights reserved.
 //
 
-#ifdef _Module_CustomVideoCapture
 
 #import "ZGVideoFrameEncoder.h"
 #include <VideoToolbox/VideoToolbox.h>
@@ -239,4 +238,3 @@ void H264CMSampleBufferToAvccBuffer(CMSampleBufferRef sbuf, std::string* output_
 
 @end
 
-#endif

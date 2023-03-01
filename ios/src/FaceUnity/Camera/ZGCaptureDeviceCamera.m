@@ -6,7 +6,6 @@
 //  Copyright © 2020 Zego. All rights reserved.
 //
 
-#ifdef _Module_CustomVideoCapture
 
 #import "ZGCaptureDeviceCamera.h"
 
@@ -50,7 +49,7 @@
 
 
 - (void)startCapture {
-    ZGLogInfo(@"▶️ Camera start to capture");
+    NSLog(@"▶️ Camera start to capture");
     if (self.isRunning) {
         return;
     }
@@ -92,11 +91,11 @@
     }
     
     self.isRunning = YES;
-    ZGLogInfo(@"⏺ Camera has started capturing");
+    NSLog(@"⏺ Camera has started capturing");
 }
 
 - (void)stopCapture {
-    ZGLogInfo(@"⏸ Camera stops capture");
+    NSLog(@"⏸ Camera stops capture");
     if (!self.isRunning) {
         return;
     }
@@ -107,7 +106,7 @@
     }
     
     self.isRunning = NO;
-    ZGLogInfo(@"⏹ Camera has stopped capturing");
+    NSLog(@"⏹ Camera has stopped capturing");
 }
 
 - (void)switchCameraPosition {
@@ -124,7 +123,7 @@
 
 #elif TARGET_OS_IOS
 
-    ZGLogInfo(@"📷 🔄 Switch to the %@ camera", self.cameraPosition == AVCaptureDevicePositionFront ? @"front" : @"back");
+    NSLog(@"📷 🔄 Switch to the %@ camera", self.cameraPosition == AVCaptureDevicePositionFront ? @"front" : @"back");
 
     // Restart capture
     if (self.isRunning) {
@@ -242,4 +241,3 @@
 
 @end
 
-#endif

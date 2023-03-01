@@ -6,7 +6,6 @@
 //  Copyright © 2020 Zego. All rights reserved.
 //
 
-#ifdef _Module_CustomVideoCapture
 
 #import "ZGCaptureDeviceImage.h"
 
@@ -36,7 +35,7 @@
 }
 
 - (void)startCapture {
-    ZGLogInfo(@"▶️ Start capture motion image");
+    NSLog(@"▶️ Start capture motion image");
     if (!self.fpsTimer) {
         self.fps = self.fps ? self.fps : 15;
         NSTimeInterval delta = 1.f / self.fps;
@@ -49,7 +48,7 @@
 }
 
 - (void)stopCapture {
-    ZGLogInfo(@"⏸ Stop capture motion image");
+    NSLog(@"⏸ Stop capture motion image");
     if (self.fpsTimer) {
         [self.fpsTimer invalidate];
         self.fpsTimer = nil;
@@ -181,4 +180,3 @@ BOOL imageContainsAlpha(CGImageRef imageRef) {
 
 @end
 
-#endif

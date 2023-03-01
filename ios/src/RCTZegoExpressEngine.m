@@ -3,10 +3,13 @@
 #import <React/RCTConvert.h>
 #import "ZegoCustomVideoProcessManager.h"
 #import "ZegoLog.h"
-#import <FaceUnity/FUManager.h>
+#import "FUManager.h"
 #import <FURenderKit/FURenderKit.h>
-#import <FaceUnity/FUDemoManager.h>
-#import <FaceUnity/ZGCaptureDeviceProtocol.h>
+#import "FUDemoManager.h"
+#import "ZGVideoFrameEncoder.h"
+#import "ZGCaptureDeviceProtocol.h"
+#import "ZGVideoFrameEncoder.h"
+#import "ZGCaptureDeviceCamera.h"
 
 static NSString* PREFIX = @"im.zego.reactnative.";
 
@@ -19,9 +22,7 @@ ZegoEventHandler,
 ZegoApiCalledEventHandler,
 ZegoMediaPlayerEventHandler,
 ZegoAudioEffectPlayerEventHandler,
-ZegoCustomVideoCaptureHandler,
-ZGCaptureDeviceDataOutputPixelBufferDelegate
->
+ZegoCustomVideoCaptureHandler,ZGCaptureDeviceDataOutputPixelBufferDelegate,ZGVideoFrameEncoderDelegate>
 
 @property (nonatomic, assign) BOOL hasListeners;
 
@@ -30,6 +31,9 @@ ZGCaptureDeviceDataOutputPixelBufferDelegate
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, ZegoMediaPlayer *> *mediaPlayerMap;
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, ZegoAudioEffectPlayer *>* audioEffectPlayerMap;
 @property (nonatomic, strong) ZegoExpressEngine *zego;
+@property (nonatomic, strong) id<ZGCaptureDevice> captureDevice;
+@property (nonatomic, strong) ZGVideoFrameEncoder *encoder;
+@property (nonatomic, strong) ZegoVideoEncodedFrameParam *encodeFrameParam;
 @end
 
 @implementation RCTZegoExpressNativeModule
@@ -51,27 +55,72 @@ RCT_EXPORT_MODULE()
     return @{@"prefix": PREFIX};
 }
 
-#pragma mark ZegoCustomVideoProcessHandler
 
-- (void)onStart:(ZegoPublishChannel)channel{
-    
-}
-- (void)onStop:(ZegoPublishChannel)channel{
-    
+#pragma mark - Getter
+
+- (id<ZGCaptureDevice>)captureDevice {
+    if (!_captureDevice) {
+        _captureDevice = [[ZGCaptureDeviceCamera alloc] initWithPixelFormatType:kCVPixelFormatType_32BGRA];
+        _captureDevice.delegate = self;
+    }
+    return _captureDevice;
 }
 
-- (CVPixelBufferRef)onProcessImageBuffer:(CVPixelBufferRef)buffer {
+- (ZGVideoFrameEncoder *)encoder {
+    if (!_encoder) {
+        _encoder = [[ZGVideoFrameEncoder alloc] initWithResolution:CGSizeMake(720, 1280) maxBitrate:(int)(3000 * 1000 * 1.5) averageBitrate:(int)(3000 * 1000) fps:15];
+        _encoder.delegate = self;
+    }
+    return _encoder;
+}
+- (ZegoVideoEncodedFrameParam *)encodeFrameParam {
+    if (!_encodeFrameParam) {
+        _encodeFrameParam = [[ZegoVideoEncodedFrameParam alloc] init];
+        _encodeFrameParam.size = CGSizeMake(720, 1280);
+        _encodeFrameParam.format = ZegoVideoEncodedFrameFormatAVCC; // The VideoToolBox default compression format is AVCC
+    }
+    return _encodeFrameParam;
+}
+
+
+- (void)captureDevice:(nonnull id<ZGCaptureDevice>)device didCapturedData:(nonnull CMSampleBufferRef)data {
+    CVPixelBufferRef buffer = CMSampleBufferGetImageBuffer(data);
+    CMTime timeStamp = CMSampleBufferGetPresentationTimeStamp(data);
     if ([FUManager shareManager].isRender) {
+        [[FUManager shareManager] updateBeautyBlurEffect];
         FURenderInput *input = [[FURenderInput alloc] init];
         input.renderConfig.imageOrientation = FUImageOrientationUP;
         input.pixelBuffer = buffer;
         //开启重力感应，内部会自动计算正确方向，设置fuSetDefaultRotationMode，无须外面设置
         input.renderConfig.gravityEnable = YES;
         FURenderOutput *output = [[FURenderKit shareRenderKit] renderWithInput:input];
-        return output.pixelBuffer;
+        if (output && output.pixelBuffer) {
+            // [[ZegoExpressEngine sharedEngine] enableCamera:YES];
+            [[ZegoExpressEngine sharedEngine] sendCustomVideoCapturePixelBuffer:output.pixelBuffer timestamp:timeStamp];
+        }
     }
-    return buffer;
 }
+
+#pragma mark ZegoCustomVideoProcessHandler
+
+- (void)onStart:(ZegoPublishChannel)channel{
+    [self.captureDevice startCapture];
+}
+- (void)onStop:(ZegoPublishChannel)channel{
+    [self.captureDevice stopCapture];
+}
+- (void)onEncodedDataTrafficControl:(ZegoTrafficControlInfo *)trafficControlInfo channel:(ZegoPublishChannel)channel{
+    [self.encoder setMaxBitrate:trafficControlInfo.bitrate*1.5 averageBitrate:trafficControlInfo.bitrate fps:trafficControlInfo.fps];
+    [self.captureDevice setFramerate:trafficControlInfo.fps];
+}
+
+
+#pragma mark ZGVideoFrameEncoderDelegate
+- (void)encoder:(ZGVideoFrameEncoder *)encoder encodedData:(NSData *)data isKeyFrame:(BOOL)isKeyFrame timestamp:(CMTime)timestamp{
+    self.encodeFrameParam.isKeyFrame = isKeyFrame;
+    [[ZegoExpressEngine sharedEngine] sendCustomVideoCaptureEncodedData:data params:self.encodeFrameParam timestamp:timestamp];
+}
+
 
 
 -(void)startObserving {
@@ -113,34 +162,23 @@ RCT_EXPORT_METHOD(createEngineWithProfile:(NSDictionary *)profileMap
 {
     // Report framework info
     [self reportPluginInfo];
-    
-    [ZegoExpressEngine setApiCalledCallback:self];
-
-    unsigned int appID = (unsigned int)[RCTConvert NSUInteger:profileMap[@"appID"]];
-//    NSString *appSign = [RCTConvert NSString:profileMap[@"appSign"]];
-//    ZegoScenario scenario = [RCTConvert NSUInteger:profileMap[@"scenario"]];
-
-//    ZGLog(@"createEngineWithProfile: app id: %lu, app sign: %@, scenario: %td", (unsigned long)appID, appSign, scenario);
-
-    ZegoEngineProfile *profile = [ZegoEngineProfile new];
-    profile.appID = appID ?: 1436527374;
-//    profile.appSign = appSign;
-//    profile.scenario = scenario;
-    _zego = [ZegoExpressEngine createEngineWithProfile:profile eventHandler:self];
-    [_zego enableHardwareDecoder:YES];
-    [_zego enableHardwareEncoder:YES];
-    
-    // Init capture config
-    ZegoCustomVideoCaptureConfig *captureConfig = [[ZegoCustomVideoCaptureConfig alloc] init];
-    captureConfig.bufferType = ZegoVideoBufferTypeCVPixelBuffer;
-
-    [_zego enableCustomVideoCapture:YES config: captureConfig channel:ZegoPublishChannelMain];
-    [_zego setVideoMirrorMode:ZegoVideoMirrorModeNoMirror channel:ZegoPublishChannelMain];
-    [_zego setCustomVideoCaptureHandler:self];
-    // Enable custom video render
-//    [[ZegoExpressEngine sharedEngine] enableCustomVideoRender:YES config:renderConfig];
-//    [[ZegoExpressEngine sharedEngine] setCustomVideoProcessHandler:self];
-    
+    if(!_zego){
+        [ZegoExpressEngine setApiCalledCallback:self];
+        unsigned int appID = (unsigned int)[RCTConvert NSUInteger:profileMap[@"appID"]];
+        ZegoEngineProfile *profile = [ZegoEngineProfile new];
+        profile.appID = appID ?: 1436527374;
+        _zego = [ZegoExpressEngine createEngineWithProfile:profile eventHandler:self];
+        [_zego enableHardwareDecoder:YES];
+        [_zego enableHardwareEncoder:YES];
+        
+        // Init capture config
+        ZegoCustomVideoCaptureConfig *captureConfig = [[ZegoCustomVideoCaptureConfig alloc] init];
+        captureConfig.bufferType = ZegoVideoBufferTypeCVPixelBuffer;
+        
+        [_zego enableCustomVideoCapture:YES config: captureConfig channel:ZegoPublishChannelMain];
+        [_zego setVideoMirrorMode:ZegoVideoMirrorModeNoMirror channel:ZegoPublishChannelMain];
+        [_zego setCustomVideoCaptureHandler:self];
+    }
     kIsInited = true;
     resolve(nil);
 }
@@ -434,7 +472,11 @@ RCT_EXPORT_METHOD(startPreview:(NSDictionary *)view
     
     [[ZegoExpressEngine sharedEngine] startPreview:canvas channel: (ZegoPublishChannel)channel];
     UIViewController *presentedViewController = RCTPresentedViewController();
-    FUDemoManager * manager = [[FUDemoManager alloc] initWithTargetController: presentedViewController originY:200];
+    CGFloat safeAreaBottom = 150;
+    if (@available(iOS 11.0, *)) {
+        safeAreaBottom = [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom + 150;
+    }
+    FUDemoManager * manager = [[FUDemoManager alloc] initWithTargetController: presentedViewController originY: CGRectGetHeight(presentedViewController.view.frame) - FUBottomBarHeight - safeAreaBottom];
     resolve(nil);
 }
 
@@ -2953,6 +2995,5 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
       RN_EVENT(@"networkQuality")
       ];
 }
-
 
 @end

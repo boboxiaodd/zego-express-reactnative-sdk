@@ -36,7 +36,7 @@ static FUManager *shareManager = NULL;
 {
     if (self = [super init]) {
         
-        CFAbsoluteTime startTime = CFAbsoluteTimeGetCurrent();
+//        CFAbsoluteTime startTime = CFAbsoluteTimeGetCurrent();
 
 //        NSString *controllerPath = [[NSBundle mainBundle] pathForResource:@"controller_cpp" ofType:@"bundle"];
 //        NSString *controllerConfigPath = [[NSBundle mainBundle] pathForResource:@"controller_config" ofType:@"bundle"];

@@ -6,8 +6,6 @@
 //  Copyright © 2020 Zego. All rights reserved.
 //
 
-#ifdef _Module_CustomVideoCapture
-
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 
@@ -56,4 +54,3 @@ typedef NS_ENUM(NSUInteger, ZGCustomVideoCaptureBufferType) {
 
 NS_ASSUME_NONNULL_END
 
-#endif

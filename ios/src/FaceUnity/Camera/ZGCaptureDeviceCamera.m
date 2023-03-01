@@ -14,7 +14,6 @@
 }
 
 @property (nonatomic, assign) OSType pixelFormatType;
-@property (nonatomic, assign) AVCaptureDevicePosition cameraPosition;
 @property (nonatomic, strong) AVCaptureDevice *device;
 @property (nonatomic, strong) AVCaptureDeviceInput *input;
 @property (nonatomic, strong) AVCaptureVideoDataOutput *output;
@@ -86,9 +85,13 @@
     
     [self.session commitConfiguration];
     
-    if (!self.session.isRunning) {
-        [self.session startRunning];
-    }
+    dispatch_queue_t sessionQueue = dispatch_queue_create("faceunity-zego", DISPATCH_QUEUE_SERIAL);
+    dispatch_async(sessionQueue, ^{
+        if (!self.session.isRunning) {
+            [self.session startRunning];
+        }
+    });
+
     
     self.isRunning = YES;
     NSLog(@"⏺ Camera has started capturing");

@@ -15,6 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ZGCaptureDeviceCamera : NSObject <ZGCaptureDevice>
 
 @property (nonatomic, weak) id<ZGCaptureDeviceDataOutputPixelBufferDelegate> delegate;
+@property (nonatomic, assign) AVCaptureDevicePosition cameraPosition;
 
 - (instancetype)initWithPixelFormatType:(OSType)pixelFormatType;
 

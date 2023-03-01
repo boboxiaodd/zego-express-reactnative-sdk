@@ -38,6 +38,8 @@ typedef NS_ENUM(NSUInteger, ZGCustomVideoCaptureBufferType) {
 @protocol ZGCaptureDevice <NSObject>
 
 @property (nonatomic, weak) id<ZGCaptureDeviceDataOutputPixelBufferDelegate> delegate;
+@property (nonatomic, assign) AVCaptureDevicePosition cameraPosition;
+
 
 - (void)startCapture;
 

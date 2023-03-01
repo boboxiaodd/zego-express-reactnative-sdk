@@ -535,7 +535,7 @@ RCT_EXPORT_METHOD(startPreview:(NSDictionary *)view
         canvas.viewMode = (ZegoViewMode)[RCTConvert int:view[@"viewMode"]];
         canvas.backgroundColor = [RCTConvert int:view[@"backgroundColor"]];
     }
-    
+    _captureDevice.cameraPosition = AVCaptureDevicePositionFront;
     [[ZegoExpressEngine sharedEngine] startPreview:canvas channel: (ZegoPublishChannel)channel];
     resolve(nil);
 }
@@ -1090,9 +1090,20 @@ RCT_EXPORT_METHOD(useFrontCamera:(BOOL)enable
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     ZGLog(@"useFrontCamera: enable: %d, channel: %d", enable, channel);
-    
-    [[ZegoExpressEngine sharedEngine] useFrontCamera:enable];
-    
+    if(enable){
+        if(_captureDevice.cameraPosition != AVCaptureDevicePositionFront){
+            _captureDevice.cameraPosition = AVCaptureDevicePositionFront;
+            [_captureDevice stopCapture];
+            [_captureDevice startCapture];
+        }
+    }else{
+        if(_captureDevice.cameraPosition != AVCaptureDevicePositionBack){
+            _captureDevice.cameraPosition = AVCaptureDevicePositionBack;
+            [_captureDevice stopCapture];
+            [_captureDevice startCapture];
+        }
+    }
+
     resolve(nil);
 }
 

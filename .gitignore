@@ -9,3 +9,4 @@ android/gradlew.bat
 android/gradle/wrapper/gradle-wrapper.properties
 android/gradle/wrapper/gradle-wrapper.jar
 docs/*
+.DS_Store

@@ -10,8 +10,6 @@
 
 #import "authpack.h"
 
-#import "FUTestRecorder.h"
-
 static FUManager *shareManager = NULL;
 
 @interface FUManager ()
@@ -35,15 +33,8 @@ static FUManager *shareManager = NULL;
 - (instancetype)init
 {
     if (self = [super init]) {
-        
-//        CFAbsoluteTime startTime = CFAbsoluteTimeGetCurrent();
-
-//        NSString *controllerPath = [[NSBundle mainBundle] pathForResource:@"controller_cpp" ofType:@"bundle"];
-//        NSString *controllerConfigPath = [[NSBundle mainBundle] pathForResource:@"controller_config" ofType:@"bundle"];
         FUSetupConfig *setupConfig = [[FUSetupConfig alloc] init];
         setupConfig.authPack = FUAuthPackMake(g_auth_package, sizeof(g_auth_package));
-//        setupConfig.controllerPath = controllerPath;
-//        setupConfig.controllerConfigPath = controllerConfigPath;
         
         // 初始化 FURenderKit
         [FURenderKit setupWithSetupConfig:setupConfig];
@@ -55,23 +46,8 @@ static FUManager *shareManager = NULL;
         dispatch_async(dispatch_get_global_queue(0, 0), ^{
             // 加载人脸 AI 模型
             NSString *faceAIPath = [[NSBundle mainBundle] pathForResource:@"ai_face_processor" ofType:@"bundle"];
+            NSLog(@"ai_face_processor = %@",faceAIPath);
             [FUAIKit loadAIModeWithAIType:FUAITYPE_FACEPROCESSOR dataPath:faceAIPath];
-            
-            // 加载身体 AI 模型，注意：高性能机型加载ai_human_processor_gpu.bundle
-//            NSString *humanBundleName = self.devicePerformanceLevel == FUDevicePerformanceLevelHigh ? @"ai_human_processor_gpu" : @"ai_human_processor";
-//            NSString *bodyAIPath = [[NSBundle mainBundle] pathForResource:humanBundleName ofType:@"bundle"];
-//            [FUAIKit loadAIModeWithAIType:FUAITYPE_HUMAN_PROCESSOR dataPath:bodyAIPath];
-            
-//            CFAbsoluteTime endTime = (CFAbsoluteTimeGetCurrent() - startTime);
-            
-//            NSString *path = [[NSBundle mainBundle] pathForResource:@"tongue" ofType:@"bundle"];
-//            [FUAIKit loadTongueMode:path];
-            
-            //TODO: todo 是否需要用？？？？？
-            /* 设置嘴巴灵活度 默认= 0*/ //
-//            float flexible = 0.5;
-//            [FUAIKit setFaceTrackParam:@"mouth_expression_more_flexible" value:flexible];
-//            NSLog(@"---%lf",endTime);
             
             // 设置人脸算法质量
             [FUAIKit shareKit].faceProcessorFaceLandmarkQuality = self.devicePerformanceLevel == FUDevicePerformanceLevelHigh ? FUFaceProcessorFaceLandmarkQualityHigh : FUFaceProcessorFaceLandmarkQualityMedium;
@@ -80,9 +56,9 @@ static FUManager *shareManager = NULL;
             [FUAIKit shareKit].faceProcessorDetectSmallFace = self.devicePerformanceLevel == FUDevicePerformanceLevelHigh;
         });
 
-        [[FUTestRecorder shareRecorder] setupRecord];
+//        [[FUTestRecorder shareRecorder] setupRecord];
         
-        [FUAIKit shareKit].maxTrackFaces = 4;
+        [FUAIKit shareKit].maxTrackFaces = 1;
     }
     
     return self;

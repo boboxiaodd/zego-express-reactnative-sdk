@@ -5,7 +5,6 @@
 #import "ZegoLog.h"
 #import "FUManager.h"
 #import <FURenderKit/FURenderKit.h>
-#import "FUDemoManager.h"
 #import "ZGVideoFrameEncoder.h"
 #import "ZGCaptureDeviceProtocol.h"
 #import "ZGVideoFrameEncoder.h"
@@ -34,6 +33,7 @@ ZegoCustomVideoCaptureHandler,ZGCaptureDeviceDataOutputPixelBufferDelegate,ZGVid
 @property (nonatomic, strong) id<ZGCaptureDevice> captureDevice;
 @property (nonatomic, strong) ZGVideoFrameEncoder *encoder;
 @property (nonatomic, strong) ZegoVideoEncodedFrameParam *encodeFrameParam;
+@property (nonatomic, strong) FUBeauty *beauty;
 @end
 
 @implementation RCTZegoExpressNativeModule
@@ -53,6 +53,58 @@ RCT_EXPORT_MODULE()
 - (NSDictionary *)constantsToExport
 {
     return @{@"prefix": PREFIX};
+}
+
+-(void)init_buauty_render:(NSDictionary *)config {
+    // 加载默认效果
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"face_beautification" ofType:@"bundle"];
+    NSLog(@"face_beautification path = %@",path);
+    _beauty = [[FUBeauty alloc] initWithPath:path name:@"FUBeauty"];
+    //美肤
+    _beauty.heavyBlur = [[config valueForKey:@"heavyBlur"] intValue];      //朦胧磨皮开关, 0为清晰磨皮, 1为朦胧磨皮
+    _beauty.blurType  = [[config valueForKey:@"blurType"] intValue];       //此参数优先级比heavyBlur低, 在使用时要将heavy_blur设为0, 0清晰磨皮 1朦胧磨皮 2精细磨皮 3均匀磨皮
+    // 默认自定义脸型
+    _beauty.faceShape = [[config valueForKey:@"faceShape"] intValue];      //变形取值 0:女神变形 1:网红变形 2:自然变形 3:默认变形 4:精细变形
+    _beauty.faceShapeLevel= [[config valueForKey:@"faceShapeLevel"] doubleValue];  //变形程度 取值范围 0.0-1.0,0.0为无效果, 1.0为最大效果, 默认值1.0
+    
+    _beauty.blurLevel = [[config valueForKey:@"blurLevel"] doubleValue];    //精细磨皮 取值范围0.0-6.0, 默认6.0
+    _beauty.colorLevel = [[config valueForKey:@"colorLevel"] doubleValue];   //美白 取值范围 0.0-1.0,0.0为无效果, 1.0为最大效果, 默认值0.0
+    _beauty.redLevel = [[config valueForKey:@"redLevel"] doubleValue];     //红润 取值范围 0.0-1.0,0.0为无效果, 1.0为最大效果, 默认值0.0
+    _beauty.sharpen = [[config valueForKey:@"sharpen"] doubleValue];      //锐化 取值范围0.0-1.0, 默认0.0
+    _beauty.faceThreed = [[config valueForKey:@"faceThreed"] doubleValue];     //五官立体 取值范围 0.0-1.0, 0.0为无效果, 1.0为最大效果, 默认值0.0
+    _beauty.eyeBright = [[config valueForKey:@"eyeBright"] doubleValue];    //亮眼 0.0-1.0, 0.0为无效果, 1.0为最大效果, 默认值0.0
+    _beauty.toothWhiten = [[config valueForKey:@"toothWhiten"] doubleValue];  //美牙 取值范围 0.0-1.0, 0.0为无效果, 1.0为最大效果, 默认值0.0
+    //美形
+    _beauty.cheekThinning = [[config valueForKey:@"cheekThinning"] doubleValue];    //瘦脸 脸型相关属性, 程度范围0.0-1.0 默认0.0
+    _beauty.cheekV = [[config valueForKey:@"cheekV"] doubleValue];           //V脸
+    _beauty.cheekLong = [[config valueForKey:@"cheekLong"] doubleValue];          //长脸（新）
+    _beauty.cheekCircle = [[config valueForKey:@"cheekCircle"] doubleValue];        //圆脸（新）
+    _beauty.cheekNarrow = [[config valueForKey:@"cheekNarrow"] doubleValue];      //窄脸
+    _beauty.cheekSmall =  [[config valueForKey:@"cheekSmall"] doubleValue];      //小脸
+    _beauty.cheekShort = [[config valueForKey:@"cheekShort"] doubleValue];         //短脸（新）
+    _beauty.intensityCheekbones = [[config valueForKey:@"intensityCheekbones"] doubleValue];//瘦颧骨
+    _beauty.intensityLowerJaw = [[config valueForKey:@"intensityLowerJaw"] doubleValue];  //瘦下颌骨
+    _beauty.intensityNose   = [[config valueForKey:@"intensityNose"] doubleValue];    //瘦鼻
+    _beauty.intensityCanthus = [[config valueForKey:@"intensityCanthus"] doubleValue];   //开眼角
+    _beauty.intensityEyeLid = [[config valueForKey:@"intensityEyeLid"] doubleValue];    //眼睑下至
+    _beauty.intensitySmile  = [[config valueForKey:@"intensitySmile"] doubleValue];    //微笑嘴角
+    _beauty.intensityEyeCircle = [[config valueForKey:@"intensityEyeCircle"] doubleValue]; //圆眼
+    _beauty.intensityChin   = [[config valueForKey:@"intensityChin"] doubleValue];  //下巴 取值范围 0.0-1.0, 0.5-0是变小, 0.5-1是变大, 默认值0.5
+    _beauty.intensityForehead = [[config valueForKey:@"intensityForehead"] doubleValue];//额头
+    _beauty.intensityLipThick =[[config valueForKey:@"intensityLipThick"] doubleValue]; //嘴唇厚度
+    _beauty.intensityEyeHeight =[[config valueForKey:@"intensityEyeHeight"] doubleValue];//眼睛位置
+    _beauty.intensityEyeSpace  =[[config valueForKey:@"intensityEyeSpace"] doubleValue];//眼距
+    _beauty.intensityEyeRotate =[[config valueForKey:@"intensityEyeRotate"] doubleValue];//眼睛角度
+    _beauty.intensityLongNose  =[[config valueForKey:@"intensityLongNose"] doubleValue];//长鼻
+    _beauty.intensityPhiltrum  =[[config valueForKey:@"intensityPhiltrum"] doubleValue];//缩人中
+    _beauty.intensityBrowHeight=[[config valueForKey:@"intensityBrowHeight"] doubleValue];//眉毛上下
+    _beauty.intensityBrowSpace=[[config valueForKey:@"intensityBrowSpace"] doubleValue]; //眉间距
+    _beauty.intensityBrowThick=[[config valueForKey:@"intensityBrowThick"] doubleValue]; //眉毛粗细
+    //滤镜
+    _beauty.filterName  = [config valueForKey:@"filterName"];  //取值为一个字符串, 默认值为 “origin” , origin即为使用原图效果
+    _beauty.filterLevel = [[config valueForKey:@"filterLevel"] doubleValue];         //取值范围 0.0-1.0,0.0为无效果, 1.0为最大效果, 默认值1.0
+    
+    [FURenderKit shareRenderKit].beauty = _beauty;
 }
 
 
@@ -98,6 +150,8 @@ RCT_EXPORT_MODULE()
             // [[ZegoExpressEngine sharedEngine] enableCamera:YES];
             [[ZegoExpressEngine sharedEngine] sendCustomVideoCapturePixelBuffer:output.pixelBuffer timestamp:timeStamp];
         }
+    }else{
+        [[ZegoExpressEngine sharedEngine] sendCustomVideoCapturePixelBuffer:buffer timestamp:timeStamp];
     }
 }
 
@@ -150,6 +204,15 @@ RCT_EXPORT_MODULE()
     [ZegoExpressEngine setEngineConfig:configObject];
 }
 
+RCT_EXPORT_METHOD(setBeauty:(NSString *)key :(id)value)
+{
+    [_beauty setValue:value forKey:key];
+}
+RCT_EXPORT_METHOD(initBeauty:(NSDictionary *)config)
+{
+    [self init_buauty_render:config];
+}
+
 RCT_EXPORT_METHOD(getVersion:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -178,6 +241,10 @@ RCT_EXPORT_METHOD(createEngineWithProfile:(NSDictionary *)profileMap
         [_zego enableCustomVideoCapture:YES config: captureConfig channel:ZegoPublishChannelMain];
         [_zego setVideoMirrorMode:ZegoVideoMirrorModeNoMirror channel:ZegoPublishChannelMain];
         [_zego setCustomVideoCaptureHandler:self];
+        
+        [FUManager shareManager].isRender = YES;
+    
+    
     }
     kIsInited = true;
     resolve(nil);
@@ -469,14 +536,7 @@ RCT_EXPORT_METHOD(startPreview:(NSDictionary *)view
         canvas.backgroundColor = [RCTConvert int:view[@"backgroundColor"]];
     }
     
-    
     [[ZegoExpressEngine sharedEngine] startPreview:canvas channel: (ZegoPublishChannel)channel];
-    UIViewController *presentedViewController = RCTPresentedViewController();
-    CGFloat safeAreaBottom = 150;
-    if (@available(iOS 11.0, *)) {
-        safeAreaBottom = [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom + 150;
-    }
-    FUDemoManager * manager = [[FUDemoManager alloc] initWithTargetController: presentedViewController originY: CGRectGetHeight(presentedViewController.view.frame) - FUBottomBarHeight - safeAreaBottom];
     resolve(nil);
 }
 

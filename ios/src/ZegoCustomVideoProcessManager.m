@@ -6,6 +6,7 @@
 //
 
 #import "ZegoCustomVideoProcessManager.h"
+#import "FUManager.h"
 
 @interface ZegoCustomVideoProcessManager ()
 

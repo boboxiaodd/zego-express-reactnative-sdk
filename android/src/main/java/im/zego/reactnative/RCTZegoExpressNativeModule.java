@@ -3,33 +3,56 @@ package im.zego.reactnative;
 import android.app.Application;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.hardware.camera2.params.DeviceStateSensorOrientationMap;
+import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
+import android.os.Build;
+import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 import android.view.TextureView;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.uimanager.NativeViewHierarchyManager;
 import com.facebook.react.uimanager.UIBlock;
 import com.facebook.react.uimanager.UIManagerModule;
+import com.faceunity.core.entity.FUBundleData;
+import com.faceunity.core.entity.FUCameraConfig;
+import com.faceunity.core.entity.FURenderFrameData;
+import com.faceunity.core.entity.FURenderInputData;
+import com.faceunity.core.entity.FURenderOutputData;
+import com.faceunity.core.enumeration.FUInputTextureEnum;
+import com.faceunity.core.enumeration.FUTransformMatrixEnum;
+import com.faceunity.core.faceunity.FURenderKit;
+import com.faceunity.core.listener.OnGlRendererListener;
+import com.faceunity.core.model.facebeauty.FaceBeauty;
+import com.faceunity.core.model.facebeauty.FaceBeautyBlurTypeEnum;
+import com.faceunity.core.model.facebeauty.FaceBeautyFilterEnum;
+import com.faceunity.core.renderer.CameraRenderer;
+import com.zego.zegoavkit2.screencapture.ve_gl.GlUtil;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import im.zego.reactnative.faceunity.FURenderer;
 import im.zego.zegoexpress.*;
 import im.zego.zegoexpress.callback.IZegoApiCalledEventHandler;
 import im.zego.zegoexpress.callback.IZegoAudioEffectPlayerEventHandler;
@@ -84,6 +107,7 @@ import im.zego.zegoexpress.constants.ZegoStreamResourceMode;
 import im.zego.zegoexpress.constants.ZegoUpdateType;
 import im.zego.zegoexpress.constants.ZegoVideoBufferType;
 import im.zego.zegoexpress.constants.ZegoVideoCodecID;
+import im.zego.zegoexpress.constants.ZegoVideoFrameFormat;
 import im.zego.zegoexpress.constants.ZegoVideoMirrorMode;
 import im.zego.zegoexpress.constants.ZegoVideoSourceType;
 import im.zego.zegoexpress.constants.ZegoViewMode;
@@ -97,6 +121,7 @@ import im.zego.zegoexpress.entity.ZegoBroadcastMessageInfo;
 import im.zego.zegoexpress.entity.ZegoCDNConfig;
 import im.zego.zegoexpress.entity.ZegoCanvas;
 import im.zego.zegoexpress.entity.ZegoCustomAudioConfig;
+import im.zego.zegoexpress.entity.ZegoCustomVideoCaptureConfig;
 import im.zego.zegoexpress.entity.ZegoCustomVideoProcessConfig;
 import im.zego.zegoexpress.entity.ZegoEffectsBeautyParam;
 import im.zego.zegoexpress.entity.ZegoEngineConfig;
@@ -123,9 +148,11 @@ import im.zego.zegoexpress.entity.ZegoStream;
 import im.zego.zegoexpress.entity.ZegoStreamRelayCDNInfo;
 import im.zego.zegoexpress.entity.ZegoUser;
 import im.zego.zegoexpress.entity.ZegoVideoConfig;
+import im.zego.zegoexpress.entity.ZegoVideoFrameParam;
 import im.zego.zegoexpress.entity.ZegoVoiceChangerParam;
 
-public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
+
+public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule implements IZegoReactNativeCustomVideoProcessHandler {
 
     private static final String Prefix = "im.zego.reactnative.";
 
@@ -137,6 +164,15 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 
     private HashMap<Integer, ZegoMediaPlayer> mediaPlayerMap;
     private HashMap<Integer, ZegoAudioEffectPlayer> audioEffectPlayerMap;
+
+
+
+    private ZegoExpressEngine mSDKEngine;
+    private static final int DEFAULT_VIDEO_WIDTH = 360;
+    private static final int DEFAULT_VIDEO_HEIGHT = 640;
+    private FURenderer mFURenderer;
+    private ZegoCustomVideoProcessManager customVideoProcessManager;
+
 
     public RCTZegoExpressNativeModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -237,6 +273,8 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
         ZegoExpressEngine.setEngineConfig(configObject);
     }
 
+
+
     // Required for rn built in EventEmitter Calls.
     @ReactMethod
     public void addListener(String eventName) {
@@ -248,9 +286,64 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 
     }
 
+    public static String BUNDLE_FACE_BEAUTIFICATION = "graphics" + File.separator + "face_beautification.bundle";
+    public static FaceBeauty getDefaultFaceBeauty() {
+        FaceBeauty recommendFaceBeauty = new FaceBeauty(new FUBundleData(BUNDLE_FACE_BEAUTIFICATION));
+        recommendFaceBeauty.setFilterName(FaceBeautyFilterEnum.FENNEN_1);
+        recommendFaceBeauty.setFilterIntensity(1.0);
+        /*美肤*/
+        recommendFaceBeauty.setEnableHeavyBlur(false);
+        recommendFaceBeauty.setBlurType(FaceBeautyBlurTypeEnum.FineSkin);
+        recommendFaceBeauty.setSharpenIntensity(0.2);
+        recommendFaceBeauty.setColorIntensity(0.3);
+        recommendFaceBeauty.setRedIntensity(0.3);
+        recommendFaceBeauty.setBlurIntensity(4.2);
+        /*美型*/
+        recommendFaceBeauty.setFaceShapeIntensity(1.0);
+        recommendFaceBeauty.setCheekVIntensity(1.0);
+        recommendFaceBeauty.setNoseIntensity(0.5);
+        recommendFaceBeauty.setForHeadIntensity(0.3);
+        recommendFaceBeauty.setMouthIntensity(0.4);
+        recommendFaceBeauty.setChinIntensity(0.3);
+
+        return recommendFaceBeauty;
+    }
+
+    @ReactMethod
+    public void initBeauty(ReadableMap config){
+
+    }
+    public void setBeauty(String key,Number value) {
+
+    }
+
     @ReactMethod
     public void getVersion(Promise promise) {
         promise.resolve(ZegoExpressEngine.getVersion());
+    }
+
+
+    @Override
+    public void onStart(int channel) {
+        FURenderKit.getInstance().setFaceBeauty(getDefaultFaceBeauty());
+    }
+
+    @Override
+    public void onStop(int channel) {
+        FURenderKit.getInstance().release();
+    }
+
+    @Override
+    public int onProcessImage(int textureID, int width, int height) {
+        FURenderInputData input = new FURenderInputData(width,height);
+        FURenderInputData.FURenderConfig config  = input.getRenderConfig();
+        config.setInputTextureMatrix(FUTransformMatrixEnum.CCROT180);
+        input.setRenderConfig(config);
+        FURenderInputData.FUTexture texture =  new FURenderInputData.FUTexture(FUInputTextureEnum.FU_ADM_FLAG_COMMON_TEXTURE,textureID);
+        input.setTexture(texture);
+        FURenderOutputData out = FURenderKit.getInstance().renderWithInput(input);
+        if(out.getTexture() != null) return out.getTexture().getTexId();
+        return textureID;
     }
 
     @ReactMethod
@@ -260,27 +353,35 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 		reportPluginInfo();
 
         // Fix hot update did not destroy the engine
-		if (ZegoExpressEngine.getEngine() != null) {
+        if (ZegoExpressEngine.getEngine() != null) {
             ZegoExpressEngine.destroyEngine(null);
         }
 
         ZegoExpressEngine.setApiCalledCallback(zegoApiCalledEventHandler);
 
         double appID = profileParam.getDouble("appID");
-		int scenario = profileParam.getInt("scenario");
+        int scenario = profileParam.getInt("scenario");
 
         ZegoEngineProfile profile = new ZegoEngineProfile();
-		profile.appID = (long) appID;
-		profile.scenario = ZegoScenario.getZegoScenario(scenario);
-		profile.application = (Application) this.reactContext.getApplicationContext();
+        profile.appID = (long) appID;
+        profile.scenario = ZegoScenario.getZegoScenario(scenario);
+        profile.application = (Application) this.reactContext.getApplicationContext();
 
-        if (profileParam.hasKey("appSign")) {
-            profile.appSign = profileParam.getString("appSign");
-        }
+        mSDKEngine = ZegoExpressEngine.createEngine(profile, zegoEventHandler);
+        mSDKEngine.enableHardwareEncoder(true);
+        mSDKEngine.enableHardwareDecoder(true);
 
-		ZegoExpressEngine.createEngine(profile, zegoEventHandler);
+        ZegoCustomVideoProcessConfig config = new ZegoCustomVideoProcessConfig();
+        config.bufferType = ZegoVideoBufferType.GL_TEXTURE_2D;
+        mSDKEngine.enableCustomVideoProcessing(true,config,ZegoPublishChannel.MAIN);
+
+        ZegoCustomVideoProcessManager.getInstance().setCustomVideoProcessHandler(this);
+        mSDKEngine.setCustomVideoProcessHandler(ZegoCustomVideoProcessManager.getInstance().rtcVideoProcessHandler);
+        mSDKEngine.setVideoMirrorMode(ZegoVideoMirrorMode.NO_MIRROR);
+
+        FURenderer.getInstance().setup(reactContext);
+
         kIsInited = true;
-
         promise.resolve(null);
 	}
 
@@ -517,8 +618,10 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
                     ZegoCanvas canvas = null;
                     if(nativeView instanceof ZegoSurfaceView) {
                         ZegoSurfaceView sv = (ZegoSurfaceView)nativeView;
+//                        sv.getView().setRotation(180);
                         canvas = new ZegoCanvas(sv.getView());
                     } else if(nativeView instanceof TextureView) {
+//                        nativeView.setRotation(180);
                         canvas = new ZegoCanvas(nativeView);
                     }
 
@@ -527,7 +630,9 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
                         canvas.backgroundColor = view.getInt("backgroundColor");
                     }
 
-                    ZegoExpressEngine.getEngine().startPreview(canvas, ZegoPublishChannel.getZegoPublishChannel(channel));
+                    mSDKEngine.useFrontCamera(true,ZegoPublishChannel.MAIN);
+                    mSDKEngine.startPreview(canvas, ZegoPublishChannel.getZegoPublishChannel(channel));
+//                    mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.AUTO,ZegoPublishChannel.MAIN);
 
                     promise.resolve(null);
                 }
@@ -540,7 +645,7 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void stopPreview(int channel, Promise promise) {
-        ZegoExpressEngine.getEngine().stopPreview(ZegoPublishChannel.getZegoPublishChannel(channel));
+        mSDKEngine.stopPreview(ZegoPublishChannel.getZegoPublishChannel(channel));
 
         promise.resolve(null);
     }

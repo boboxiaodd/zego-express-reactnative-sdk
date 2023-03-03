@@ -43,6 +43,7 @@ import com.zego.zegoavkit2.screencapture.ve_gl.GlUtil;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -172,7 +173,7 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
     private static final int DEFAULT_VIDEO_HEIGHT = 640;
     private FURenderer mFURenderer;
     private ZegoCustomVideoProcessManager customVideoProcessManager;
-
+    private FaceBeauty beauty;
 
     public RCTZegoExpressNativeModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -287,34 +288,174 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
     }
 
     public static String BUNDLE_FACE_BEAUTIFICATION = "graphics" + File.separator + "face_beautification.bundle";
-    public static FaceBeauty getDefaultFaceBeauty() {
-        FaceBeauty recommendFaceBeauty = new FaceBeauty(new FUBundleData(BUNDLE_FACE_BEAUTIFICATION));
-        recommendFaceBeauty.setFilterName(FaceBeautyFilterEnum.FENNEN_1);
-        recommendFaceBeauty.setFilterIntensity(1.0);
-        /*美肤*/
-        recommendFaceBeauty.setEnableHeavyBlur(false);
-        recommendFaceBeauty.setBlurType(FaceBeautyBlurTypeEnum.FineSkin);
-        recommendFaceBeauty.setSharpenIntensity(0.2);
-        recommendFaceBeauty.setColorIntensity(0.3);
-        recommendFaceBeauty.setRedIntensity(0.3);
-        recommendFaceBeauty.setBlurIntensity(4.2);
-        /*美型*/
-        recommendFaceBeauty.setFaceShapeIntensity(1.0);
-        recommendFaceBeauty.setCheekVIntensity(1.0);
-        recommendFaceBeauty.setNoseIntensity(0.5);
-        recommendFaceBeauty.setForHeadIntensity(0.3);
-        recommendFaceBeauty.setMouthIntensity(0.4);
-        recommendFaceBeauty.setChinIntensity(0.3);
-
-        return recommendFaceBeauty;
-    }
 
     @ReactMethod
     public void initBeauty(ReadableMap config){
+        beauty = new FaceBeauty(new FUBundleData(BUNDLE_FACE_BEAUTIFICATION));
+        /*滤镜*/
+        beauty.setFilterName(config.getString("filterName"));
+        beauty.setFilterIntensity(config.getDouble("filterLevel"));
+        /*美肤*/
+        beauty.setEnableHeavyBlur(config.getBoolean("heavyBlur"));
+        beauty.setBlurType(config.getInt("blurType"));
+        beauty.setFaceShape(config.getInt("faceShape"));
+        beauty.setFaceShapeIntensity(config.getDouble("faceShapeLevel"));
+        beauty.setBlurIntensity(config.getDouble("blurLevel"));
+        beauty.setColorIntensity(config.getDouble("colorLevel"));
+        beauty.setRedIntensity(config.getDouble("redLevel"));
+        beauty.setSharpenIntensity(config.getDouble("sharpen"));
+        beauty.setFaceThreeIntensity(config.getDouble("faceThreed"));
+        beauty.setEyeBrightIntensity(config.getDouble("eyeBright"));
+        beauty.setToothIntensity(config.getDouble("toothWhiten"));
+        /*美形*/
+        beauty.setCheekThinningIntensity(config.getDouble("cheekThinning"));
+        beauty.setCheekVIntensity(config.getDouble("cheekV"));
+        beauty.setCheekLongIntensity(config.getDouble("cheekLong"));
+        beauty.setCheekCircleIntensity(config.getDouble("cheekCircle"));
+        beauty.setCheekNarrowIntensity(config.getDouble("cheekNarrow"));
+        beauty.setCheekSmallIntensity(config.getDouble("cheekSmall"));
+        beauty.setCheekShortIntensity(config.getDouble("cheekShort"));
+        beauty.setCheekBonesIntensity(config.getDouble("intensityCheekbones"));
+        beauty.setLowerJawIntensity(config.getDouble("intensityLowerJaw"));
+        beauty.setNoseIntensity(config.getDouble("intensityNose"));
+        beauty.setCanthusIntensity(config.getDouble("intensityCanthus"));
+        beauty.setEyeLidIntensity(config.getDouble("intensityEyeLid"));
+        beauty.setSmileIntensity(config.getDouble("intensitySmile"));
+        beauty.setEyeCircleIntensity(config.getDouble("intensityEyeCircle"));
+        beauty.setChinIntensity(config.getDouble("intensityChin"));
+        beauty.setForHeadIntensity(config.getDouble("intensityForehead"));
+        beauty.setLipThickIntensity(config.getDouble("intensityLipThick"));
+        beauty.setEyeHeightIntensity(config.getDouble("intensityEyeHeight"));
+        beauty.setEyeSpaceIntensity(config.getDouble("intensityEyeSpace"));
+        beauty.setEyeRotateIntensity(config.getDouble("intensityEyeRotate"));
+        beauty.setLongNoseIntensity(config.getDouble("intensityLongNose"));
+        beauty.setPhiltrumIntensity(config.getDouble("intensityPhiltrum"));
+        beauty.setBrowHeightIntensity(config.getDouble("intensityBrowHeight"));
+        beauty.setBrowSpaceIntensity(config.getDouble("intensityBrowSpace"));
+        beauty.setBrowThickIntensity(config.getDouble("intensityBrowThick"));
+        FURenderKit.getInstance().setFaceBeauty(beauty);
 
     }
-    public void setBeauty(String key,Number value) {
 
+    @ReactMethod
+    public void setBeauty(String key,Object value) {
+        switch (key){
+            case "filterName":
+                beauty.setFilterName((String) value);
+                break;
+            case "filterLevel":
+                beauty.setFilterIntensity((Double) value);
+                break;
+            case "heavyBlur":
+                beauty.setEnableHeavyBlur((Boolean) value);
+                break;
+            case "blurType":
+                beauty.setBlurType((Integer) value);
+                break;
+            case "faceShape":
+                beauty.setFaceShape((Integer) value);
+                break;
+            case "faceShapeLevel":
+                beauty.setFaceShapeIntensity((Double) value);
+                break;
+            case "blurLevel":
+                beauty.setBlurIntensity((Double) value);
+                break;
+            case "colorLevel":
+                beauty.setColorIntensity((Double) value);
+                break;
+            case "redLevel":
+                beauty.setRedIntensity((Double) value);
+                break;
+            case "sharpen":
+                beauty.setSharpenIntensity((Double) value);
+                break;
+            case "faceThreed":
+                beauty.setFaceThreeIntensity((Double) value);
+                break;
+            case "eyeBright":
+                beauty.setEyeBrightIntensity((Double) value);
+                break;
+            case "toothWhiten":
+                beauty.setToothIntensity((Double) value);
+                break;
+            case "cheekThinning":
+                beauty.setCheekThinningIntensity((Double) value);
+                break;
+            case "cheekV":
+                beauty.setCheekVIntensity((Double) value);
+                break;
+            case "cheekLong":
+                beauty.setCheekLongIntensity((Double) value);
+                break;
+            case "cheekCircle":
+                beauty.setCheekCircleIntensity((Double) value);
+                break;
+            case "cheekNarrow":
+                beauty.setCheekNarrowIntensity((Double) value);
+                break;
+            case "cheekSmall":
+                beauty.setCheekSmallIntensity((Double) value);
+                break;
+            case "cheekShort":
+                beauty.setCheekShortIntensity((Double) value);
+                break;
+            case "intensityCheekbones":
+                beauty.setCheekBonesIntensity((Double) value);
+                break;
+            case "intensityLowerJaw":
+                beauty.setLowerJawIntensity((Double) value);
+                break;
+            case "intensityNose":
+                beauty.setNoseIntensity((Double) value);
+                break;
+            case "intensityCanthus":
+                beauty.setCanthusIntensity((Double) value);
+                break;
+            case "intensityEyeLid":
+                beauty.setEyeLidIntensity((Double) value);
+                break;
+            case "intensitySmile":
+                beauty.setSmileIntensity((Double) value);
+                break;
+            case "intensityEyeCircle":
+                beauty.setEyeCircleIntensity((Double) value);
+                break;
+            case "intensityChin":
+                beauty.setChinIntensity((Double) value);
+                break;
+            case "intensityForehead":
+                beauty.setForHeadIntensity((Double) value);
+                break;
+            case "intensityLipThick":
+                beauty.setLipThickIntensity((Double) value);
+                break;
+            case "intensityEyeHeight":
+                beauty.setEyeHeightIntensity((Double) value);
+                break;
+            case "intensityEyeSpace":
+                beauty.setEyeSpaceIntensity((Double) value);
+                break;
+            case "intensityEyeRotate":
+                beauty.setEyeRotateIntensity((Double) value);
+                break;
+            case "intensityLongNose":
+                beauty.setLongNoseIntensity((Double) value);
+                break;
+            case "intensityPhiltrum":
+                beauty.setPhiltrumIntensity((Double) value);
+                break;
+            case "intensityBrowHeight":
+                beauty.setBrowHeightIntensity((Double) value);
+                break;
+            case "intensityBrowSpace":
+                beauty.setBrowSpaceIntensity((Double) value);
+                break;
+            case "intensityBrowThick":
+                beauty.setBrowThickIntensity((Double) value);
+                break;
+        }
+        FURenderKit.getInstance().setFaceBeauty(beauty);
     }
 
     @ReactMethod
@@ -325,7 +466,7 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
 
     @Override
     public void onStart(int channel) {
-        FURenderKit.getInstance().setFaceBeauty(getDefaultFaceBeauty());
+        FURenderKit.getInstance().setFaceBeauty(beauty);
     }
 
     @Override

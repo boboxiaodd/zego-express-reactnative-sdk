@@ -296,7 +296,8 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         beauty.setFilterName(config.getString("filterName"));
         beauty.setFilterIntensity(config.getDouble("filterLevel"));
         /*美肤*/
-        beauty.setEnableHeavyBlur(config.getBoolean("heavyBlur"));
+        int v = config.getInt("heavyBlur");
+        beauty.setEnableHeavyBlur(v != 0);
         beauty.setBlurType(config.getInt("blurType"));
         beauty.setFaceShape(config.getInt("faceShape"));
         beauty.setFaceShapeIntensity(config.getDouble("faceShapeLevel"));
@@ -347,7 +348,8 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
                 beauty.setFilterIntensity((Double) value);
                 break;
             case "heavyBlur":
-                beauty.setEnableHeavyBlur((Boolean) value);
+                int v = (Integer) value;
+                beauty.setEnableHeavyBlur(v != 0);
                 break;
             case "blurType":
                 beauty.setBlurType((Integer) value);

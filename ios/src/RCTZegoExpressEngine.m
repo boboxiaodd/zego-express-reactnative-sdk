@@ -150,6 +150,7 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(setBeauty:(NSString *)key :(id)value)
 {
     [_beauty setValue:value forKey:key];
+    [FURenderKit shareRenderKit].beauty = _beauty;
 }
 RCT_EXPORT_METHOD(initBeauty:(NSDictionary *)config)
 {

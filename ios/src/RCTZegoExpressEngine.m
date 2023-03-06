@@ -105,10 +105,10 @@ RCT_EXPORT_MODULE()
 #pragma mark ZegoCustomVideoProcessHandler
 
 - (void)onStart:(ZegoPublishChannel)channel{
-    
+    [FURenderKit shareRenderKit].beauty = _beauty;
 }
 - (void)onStop:(ZegoPublishChannel)channel{
-    
+    [FURenderKit clear];
 }
 - (void)onCapturedUnprocessedCVPixelBuffer:(CVPixelBufferRef)buffer timestamp:(CMTime)timestamp channel:(ZegoPublishChannel)channel{
     if ([FUManager shareManager].isRender) {
@@ -150,7 +150,6 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(setBeauty:(NSString *)key :(id)value)
 {
     [_beauty setValue:value forKey:key];
-    [FURenderKit shareRenderKit].beauty = _beauty;
 }
 RCT_EXPORT_METHOD(initBeauty:(NSDictionary *)config)
 {
@@ -182,8 +181,8 @@ RCT_EXPORT_METHOD(createEngineWithProfile:(NSDictionary *)profileMap
         [_zego enableHardwareEncoder:YES];
 
 //        [_zego setVideoMirrorMode:ZegoVideoMirrorModeNoMirror channel:ZegoPublishChannelMain];
-        
         [FUManager shareManager].isRender = YES;
+        
         ZegoCustomVideoProcessConfig *config = [[ZegoCustomVideoProcessConfig alloc] init];
         config.bufferType = ZegoVideoBufferTypeCVPixelBuffer;
         [_zego enableCustomVideoProcessing:YES config:config];

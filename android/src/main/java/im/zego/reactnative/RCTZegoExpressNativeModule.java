@@ -329,14 +329,11 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         beauty.setBrowHeightIntensity(config.getDouble("intensityBrowHeight"));
         beauty.setBrowSpaceIntensity(config.getDouble("intensityBrowSpace"));
         beauty.setBrowThickIntensity(config.getDouble("intensityBrowThick"));
-        FURenderKit.getInstance().setFaceBeauty(beauty);
-
     }
 
     @ReactMethod
     public void setBeautyString(String key,String value) {
         beauty.setFilterName(value);
-        FURenderKit.getInstance().setFaceBeauty(beauty);
     }
     @ReactMethod
     public void setBeautyInt(String key,Integer value) {
@@ -459,7 +456,6 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
                 beauty.setBrowThickIntensity(value);
                 break;
         }
-        FURenderKit.getInstance().setFaceBeauty(beauty);
     }
 
     @ReactMethod

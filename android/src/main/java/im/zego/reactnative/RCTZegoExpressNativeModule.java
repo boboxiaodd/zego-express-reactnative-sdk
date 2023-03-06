@@ -3,12 +3,6 @@ package im.zego.reactnative;
 import android.app.Application;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.hardware.camera2.params.DeviceStateSensorOrientationMap;
-import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
-import android.os.Build;
-import android.os.SystemClock;
-import android.util.Log;
 import android.view.View;
 import android.view.TextureView;
 

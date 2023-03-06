@@ -1,3 +1,14 @@
+## 要在app的 `build.gradle` 增加faceunity源
+```gradle
+allprojects {
+    repositories {
+        maven {
+                    allowInsecureProtocol = true
+                    url 'http://maven.faceunity.com/repository/maven-public/'
+              }
+}
+```
+
 README
 ======
 

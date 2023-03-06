@@ -1,3 +1,48 @@
+## 主要改动是集成 faceunity 
+
+1、增加 `initBeauty` 初始化美颜参数 参数是 
+```js
+{
+    heavyBlur:1,
+    blurType:2,
+    faceShapeLevel:0.5,
+    //...
+}
+```
+2、增加 `setBeauty` 设置美颜参数 , 
+```js
+setBeauty('faceShapeLevel',0.5);
+```
+iOS 第二参数类型是 `Any`
+
+Android 第二个参数是`Double`，还根据参数类型不一样，增加两个方法 `setBeautyInt` 和 `setBeautyString`
+```js
+import { NativeModules } from 'react-native';
+const { ZegoExpressNativeModule } = NativeModules;
+
+export function isInteger(obj) {
+    return (obj | 0) === obj
+}
+export function  setBeauty(key,value){
+    if(Platform.OS === 'android'){
+        if(typeof(value) === "string"){
+            ZegoExpressNativeModule.setBeautyString(key,value);
+        }else if(isInteger(value)){
+            ZegoExpressNativeModule.setBeautyInt(key,value);
+        }else{
+            ZegoExpressNativeModule.setBeauty(key, value);
+        }
+    }else{
+        ZegoExpressNativeModule.setBeauty(key, value);
+    }
+}
+```
+
+3、集成方式：`FURenderKit` + `IZegoCustomVideoProcessHandler`
+
+这种方式最简单，无需自定义摄像头采集。
+
+
 # zego-express-engine-reactnative
 
 [English](https://github.com/zegoim/zego-express-reactnative-sdk/blob/master/README.md) | [中文](https://github.com/zegoim/zego-express-reactnative-sdk/blob/master/README_zh.md)

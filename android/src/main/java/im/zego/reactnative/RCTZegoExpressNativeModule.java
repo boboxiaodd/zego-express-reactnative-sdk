@@ -25,19 +25,14 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.uimanager.NativeViewHierarchyManager;
 import com.facebook.react.uimanager.UIBlock;
 import com.facebook.react.uimanager.UIManagerModule;
+
 import com.faceunity.core.entity.FUBundleData;
-import com.faceunity.core.entity.FUCameraConfig;
-import com.faceunity.core.entity.FURenderFrameData;
 import com.faceunity.core.entity.FURenderInputData;
 import com.faceunity.core.entity.FURenderOutputData;
 import com.faceunity.core.enumeration.FUInputTextureEnum;
 import com.faceunity.core.enumeration.FUTransformMatrixEnum;
 import com.faceunity.core.faceunity.FURenderKit;
-import com.faceunity.core.listener.OnGlRendererListener;
 import com.faceunity.core.model.facebeauty.FaceBeauty;
-import com.faceunity.core.model.facebeauty.FaceBeautyBlurTypeEnum;
-import com.faceunity.core.model.facebeauty.FaceBeautyFilterEnum;
-import com.faceunity.core.renderer.CameraRenderer;
 import com.zego.zegoavkit2.screencapture.ve_gl.GlUtil;
 
 import org.json.JSONObject;
@@ -487,7 +482,7 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
     public int onProcessImage(int textureID, int width, int height) {
         FURenderInputData input = new FURenderInputData(width,height);
         FURenderInputData.FURenderConfig config  = input.getRenderConfig();
-        config.setInputTextureMatrix(FUTransformMatrixEnum.CCROT180);
+        config.setOutputMatrix(FUTransformMatrixEnum.CCROT180);
         input.setRenderConfig(config);
         FURenderInputData.FUTexture texture =  new FURenderInputData.FUTexture(FUInputTextureEnum.FU_ADM_FLAG_COMMON_TEXTURE,textureID);
         input.setTexture(texture);
@@ -530,6 +525,7 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         mSDKEngine.setVideoMirrorMode(ZegoVideoMirrorMode.NO_MIRROR);
 
         FURenderer.getInstance().setup(reactContext);
+//        FURenderKit.getInstance().setUseTexAsync(true);
 
         kIsInited = true;
         promise.resolve(null);

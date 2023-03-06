@@ -41,7 +41,6 @@ public class ZegoCustomVideoProcessManager {
     }
 
     public IZegoCustomVideoProcessHandler rtcVideoProcessHandler = new IZegoCustomVideoProcessHandler() {
-        private ByteBuffer byteBuffer;
         @Override
         public void onStart(ZegoPublishChannel channel) {
             super.onStart(channel);

@@ -1,6 +1,6 @@
-## 主要改动是集成 faceunity 
+# 主要改动是集成 faceunity 
 
-1、增加 `initBeauty` 初始化美颜参数 参数是 
+## 1、增加 `initBeauty` 初始化美颜参数 参数是 
 ```js
 {
     heavyBlur:1,
@@ -9,7 +9,7 @@
     //...
 }
 ```
-2、增加 `setBeauty` 设置美颜参数 , 
+## 2、增加 `setBeauty` 设置美颜参数 , 
 ```js
 setBeauty('faceShapeLevel',0.5);
 ```
@@ -38,14 +38,43 @@ export function  setBeauty(key,value){
 }
 ```
 
-3、集成方式：`FURenderKit` + `IZegoCustomVideoProcessHandler`
+## 3、集成方式：`FURenderKit` + `IZegoCustomVideoProcessHandler`
 
 这种方式最简单，无需自定义摄像头采集。
 
 
 
-4、更改原生代码 获取 View 的方式，因为 `findNodeHandle` 即将弃用，并且在函数组件中不稳定（会多次调用set ref）
-
+## 4、更用`nativeID`方式关联 View
+#### 因为 `findNodeHandle` 即将弃用，并且在函数组件中不稳定（会多次调用set ref）
+```js
+import React, {useContext} from 'react';
+import {RootTagContext} from 'react-native';
+import ZegoExpressEngine from 'zego-express-engine-reactnative';
+const VideoCallModal = ({navigation, route}) => {
+    const rootTag = useContext(RootTagContext);
+    useEffect(() => {
+        setTimeout(() => { //延迟0.1秒，不然会关联失败
+            ZegoExpressEngine.instance().startPreview({
+                'nativeID': 'video_call_preview',
+                'rootTag': rootTag,
+                'viewMode': 1,
+                'backgroundColor': 0,
+            }, ZegoPublishChannel.Main).then(r =>
+                console.log('preview success!'),
+            ).catch(error => console.log(error.toString()));
+        },100);
+        return () => {
+            //clean
+        }
+    },[]);
+    return (
+        <View>
+            <ZegoTextureView nativeID="video_call_play"  />
+            <ZegoTextureView nativeID="video_call_preview" />
+        </View>
+    )
+}
+```
 iOS：
 
 ```objectivec

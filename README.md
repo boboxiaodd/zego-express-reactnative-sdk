@@ -47,7 +47,7 @@ export function  setBeauty(key,value){
 ## 4、更用`nativeID`方式关联 View
 #### 因为 `findNodeHandle` 即将弃用，并且在函数组件中不稳定（会多次调用set ref）
 ```js
-import React, {useContext} from 'react';
+import React, {useContext,useEffect} from 'react';
 import {RootTagContext} from 'react-native';
 import ZegoExpressEngine from 'zego-express-engine-reactnative';
 const VideoCallModal = ({navigation, route}) => {

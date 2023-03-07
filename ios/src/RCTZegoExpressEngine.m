@@ -471,8 +471,12 @@ RCT_EXPORT_METHOD(startPreview:(NSDictionary *)view
     ZegoCanvas *canvas = nil;
 
     if(view && view.count > 0) {
-        NSNumber *viewTag = [RCTConvert NSNumber:view[@"reactTag"]];
-        UIView *uiView = [self.bridge.uiManager viewForReactTag:viewTag];
+        NSString *nativeID = [RCTConvert NSString:view[@"nativeID"]];
+        NSNumber *rootTag  = [RCTConvert NSNumber:view[@"rootTag"]];
+        NSLog(@"nativeID = %@ , rootTag = %@", nativeID, rootTag);
+//        NSNumber *viewTag = [RCTConvert NSNumber:view[@"reactTag"]];
+//        UIView *uiView = [self.bridge.uiManager viewForReactTag:viewTag];
+        UIView *uiView = [self.bridge.uiManager viewForNativeID:nativeID withRootTag: rootTag];
         
         canvas = [[ZegoCanvas alloc] initWithView:uiView];
         canvas.viewMode = (ZegoViewMode)[RCTConvert int:view[@"viewMode"]];
@@ -826,8 +830,10 @@ RCT_EXPORT_METHOD(startPlayingStream:(NSString *)streamID
     ZegoCanvas *canvas = nil;
 
     if(view && view.count > 0) {
-        NSNumber *viewTag = [RCTConvert NSNumber:view[@"reactTag"]];
-        UIView *uiView = [self.bridge.uiManager viewForReactTag:viewTag];
+        NSNumber *rootTag = [RCTConvert NSNumber:view[@"rootTag"]];
+        NSString *nativeID = [RCTConvert NSString:view[@"nativeID"]];
+        UIView *uiView = [self.bridge.uiManager viewForNativeID:nativeID withRootTag:rootTag];
+//        UIView *uiView = [self.bridge.uiManager viewForReactTag:viewTag];
         
         canvas = [[ZegoCanvas alloc] initWithView:uiView];
         canvas.viewMode = (ZegoViewMode)[RCTConvert int:view[@"viewMode"]];

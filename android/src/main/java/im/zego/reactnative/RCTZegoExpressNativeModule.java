@@ -3,6 +3,12 @@ package im.zego.reactnative;
 import android.app.Application;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.hardware.camera2.params.DeviceStateSensorOrientationMap;
+import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
+import android.os.Build;
+import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 import android.view.TextureView;
 
@@ -20,6 +26,7 @@ import com.facebook.react.uimanager.NativeViewHierarchyManager;
 import com.facebook.react.uimanager.UIBlock;
 import com.facebook.react.uimanager.UIManagerModule;
 
+import com.facebook.react.uimanager.util.ReactFindViewUtil;
 import com.faceunity.core.entity.FUBundleData;
 import com.faceunity.core.entity.FURenderInputData;
 import com.faceunity.core.entity.FURenderOutputData;
@@ -745,19 +752,18 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
     public void startPreview(final ReadableMap view, final int channel, final Promise promise) {
 
         if(view != null) {
-            final int viewTag = view.getInt("reactTag");
+            final String nativeID = view.getString("nativeID");
             UIManagerModule uiMgr = this.reactContext.getNativeModule(UIManagerModule.class);
             uiMgr.addUIBlock(new UIBlock() {
                 @Override
                 public void execute(NativeViewHierarchyManager nativeViewHierarchyManager) {
-                    View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
+//                    View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
+                    View nativeView = ReactFindViewUtil.findView(reactContext.getCurrentActivity().getWindow().getDecorView().getRootView(), nativeID);
                     ZegoCanvas canvas = null;
                     if(nativeView instanceof ZegoSurfaceView) {
                         ZegoSurfaceView sv = (ZegoSurfaceView)nativeView;
-//                        sv.getView().setRotation(180);
                         canvas = new ZegoCanvas(sv.getView());
                     } else if(nativeView instanceof TextureView) {
-//                        nativeView.setRotation(180);
                         canvas = new ZegoCanvas(nativeView);
                     }
 
@@ -1026,13 +1032,14 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         }
 
         if (view != null) {
-            final int viewTag = view.getInt("reactTag");
+            final String nativeID = view.getString("nativeID");
             UIManagerModule uiMgr = this.reactContext.getNativeModule(UIManagerModule.class);
             final ZegoPlayerConfig finalConfigObj = configObj;
             uiMgr.addUIBlock(new UIBlock() {
                 @Override
                 public void execute(NativeViewHierarchyManager nativeViewHierarchyManager) {
-                    View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
+                    View nativeView = ReactFindViewUtil.findView(reactContext.getCurrentActivity().getWindow().getDecorView().getRootView(), nativeID);
+//                    View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
                     ZegoCanvas canvas = null;
                     if(nativeView instanceof ZegoSurfaceView) {
                         ZegoSurfaceView sv = (ZegoSurfaceView)nativeView;

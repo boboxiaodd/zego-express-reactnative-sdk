@@ -1,5 +1,6 @@
 import * as zego from './ZegoExpressDefines';
 import { ZegoEventListener } from './ZegoExpressEventHandler';
+import type {EventSubscription} from "react-native/Libraries/vendor/emitter/EventEmitter";
 export default class ZegoExpressEngine {
     /**
      * Engine singleton instance
@@ -91,7 +92,7 @@ export default class ZegoExpressEngine {
      * @param event event type.
      * @param callback event callback.
      */
-    on<EventType extends keyof ZegoEventListener>(event: EventType, callback: ZegoEventListener[EventType]): void;
+    on<EventType extends keyof ZegoEventListener>(event: EventType, callback: ZegoEventListener[EventType]): EventSubscription;
     /**
      * Unregister event handler
      *

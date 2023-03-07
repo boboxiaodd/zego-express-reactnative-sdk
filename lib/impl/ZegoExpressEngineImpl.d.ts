@@ -1,5 +1,6 @@
 import * as zego from "../ZegoExpressDefines";
 import { ZegoEventListener, ZegoMediaPlayerListener, ZegoAudioEffectPlayerListener } from '../ZegoExpressEventHandler';
+import type {EventSubscription} from "react-native/Libraries/vendor/emitter/EventEmitter";
 declare type ZegoAnyCallback = (...args: any[]) => any;
 export declare class ZegoExpressEngineImpl {
     static _listeners: Map<string, Map<ZegoAnyCallback, ZegoAnyCallback>>;
@@ -15,7 +16,7 @@ export declare class ZegoExpressEngineImpl {
     getVersion(): Promise<string>;
     uploadLog(): Promise<void>;
     callExperimentalAPI(params: string): Promise<string>;
-    on<EventType extends keyof ZegoEventListener>(event: EventType, callback: ZegoEventListener[EventType]): void;
+    on<EventType extends keyof ZegoEventListener>(event: EventType, callback: ZegoEventListener[EventType]): EventSubscription;
     off<EventType extends keyof ZegoEventListener>(event: EventType, callback?: ZegoEventListener[EventType]): void;
     loginRoom(roomID: string, user: zego.ZegoUser, config?: zego.ZegoRoomConfig): Promise<zego.ZegoRoomLoginResult>;
     logoutRoom(roomID?: string): Promise<zego.ZegoRoomLogoutResult>;

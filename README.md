@@ -43,6 +43,25 @@ export function  setBeauty(key,value){
 这种方式最简单，无需自定义摄像头采集。
 
 
+
+4、更改原生代码 获取 View 的方式，因为 `findNodeHandle` 即将弃用，并且在函数组件中不稳定（会多次调用set ref）
+
+iOS：
+
+```objectivec
+NSNumber *rootTag = [RCTConvert NSNumber:view[@"rootTag"]];
+NSString *nativeID = [RCTConvert NSString:view[@"nativeID"]];
+UIView *uiView = [self.bridge.uiManager viewForNativeID:nativeID withRootTag:rootTag];
+```
+
+Android:
+
+```java
+final String nativeID = view.getString("nativeID");
+View nativeView = ReactFindViewUtil.findView(reactContext.getCurrentActivity().getWindow().getDecorView().getRootView(), nativeID);
+```
+
+
 # zego-express-engine-reactnative
 
 [English](https://github.com/zegoim/zego-express-reactnative-sdk/blob/master/README.md) | [中文](https://github.com/zegoim/zego-express-reactnative-sdk/blob/master/README_zh.md)

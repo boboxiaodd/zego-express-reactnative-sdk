@@ -827,7 +827,8 @@ export declare class ZegoView {
     /** Background color, the format is 0xRRGGBB, default is black, which is 0x000000 */
     backgroundColor: number;
     /** reactTag is a tag for native and js to identify each component, and each root view must have a unique reactTag. */
-    reactTag: number;
+    rootTag: string;
+    nativeID: number;
     constructor(reactTag: number, viewMode: ZegoViewMode, backgroundColor: number);
 }
 /**

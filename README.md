@@ -1,4 +1,4 @@
-# 主要改动是集成 faceunity 
+# 主要改动
 
 ## 1、增加 `initBeauty` 初始化美颜参数 参数是 
 ```js
@@ -90,6 +90,33 @@ final String nativeID = view.getString("nativeID");
 View nativeView = ReactFindViewUtil.findView(reactContext.getCurrentActivity().getWindow().getDecorView().getRootView(), nativeID);
 ```
 
+
+## 5、改成事件订阅机制，增加返回值 `EventSubscription`
+
+#### 因为 `ZegoExpressEngine.instance().off` 涉及到弃用的方法，无法正常使用。
+
+```js
+_onRoomStateUpdate = ZegoExpressEngine.instance().on('roomStateUpdate',(roomID, state, errorCode, extendedData) => {
+            switch (state){
+                case ZegoRoomState.Connected:
+                    console.log("房间登录成功...");
+                    ZegoExpressEngine.instance().startPublishingStream(userinfo.call_info.my_stream_id).then(() => {
+                        console.log("准备推流...");
+                    });
+                    break;
+                case ZegoRoomState.Connecting:
+                    //正在登录房间
+                    console.log("登录中...");
+                    break;
+                case ZegoRoomState.Disconnected:
+                    console.log("房间断开...");
+                    //离开房间
+                    break;
+            }
+});
+//....
+_onRoomStateUpdate.remove();
+```
 
 # zego-express-engine-reactnative
 

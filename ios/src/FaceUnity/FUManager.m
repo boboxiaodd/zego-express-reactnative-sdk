@@ -45,7 +45,7 @@ static FUManager *shareManager = NULL;
         
         dispatch_async(dispatch_get_global_queue(0, 0), ^{
             // 加载人脸 AI 模型
-            NSString *faceAIPath = [[NSBundle mainBundle] pathForResource:@"ai_face_processor" ofType:@"bundle"];
+            NSString *faceAIPath = [[NSBundle mainBundle] pathForResource:@"ai_face_processor_lite" ofType:@"bundle"];
             NSLog(@"ai_face_processor = %@",faceAIPath);
             [FUAIKit loadAIModeWithAIType:FUAITYPE_FACEPROCESSOR dataPath:faceAIPath];
             

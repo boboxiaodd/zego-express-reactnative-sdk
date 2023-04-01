@@ -52,7 +52,7 @@ public class FURenderer extends IFURenderer {
     private FURenderKit mFURenderKit;
 
     /* AI道具*/
-    private String BUNDLE_AI_FACE = "model" + File.separator + "ai_face_processor.bundle";
+    private String BUNDLE_AI_FACE = "model" + File.separator + "ai_face_processor_lite.bundle";
     private String BUNDLE_AI_HUMAN = "model" + File.separator + "ai_human_processor.bundle";
     private String BUNDLE_AI_HUMAN_GPU = "model" + File.separator + "ai_human_processor_gpu.bundle";
 

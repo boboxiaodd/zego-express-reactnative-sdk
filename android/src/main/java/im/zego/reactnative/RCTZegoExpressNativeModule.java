@@ -82,6 +82,7 @@ import im.zego.zegoexpress.constants.ZegoAudioSourceType;
 import im.zego.zegoexpress.constants.ZegoDeviceExceptionType;
 import im.zego.zegoexpress.constants.ZegoDeviceType;
 import im.zego.zegoexpress.constants.ZegoElectronicEffectsMode;
+import im.zego.zegoexpress.constants.ZegoLowlightEnhancementMode;
 import im.zego.zegoexpress.constants.ZegoMediaPlayerNetworkEvent;
 import im.zego.zegoexpress.constants.ZegoMediaPlayerState;
 import im.zego.zegoexpress.constants.ZegoMixerInputContentType;
@@ -787,7 +788,6 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
 
                     mSDKEngine.useFrontCamera(true,ZegoPublishChannel.MAIN);
                     mSDKEngine.startPreview(canvas, ZegoPublishChannel.getZegoPublishChannel(channel));
-//                    mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.AUTO,ZegoPublishChannel.MAIN);
 
                     promise.resolve(null);
                 }

@@ -524,8 +524,6 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         if(minFPS > 0 && maxFPS > 0) {
             mSDKEngine.enableCameraAdaptiveFPS(true, minFPS, maxFPS, ZegoPublishChannel.MAIN);
         }
-	    
-	mSDKEngine.enableCustomVideoProcessing(true,config,ZegoPublishChannel.MAIN);
 
         ZegoCustomVideoProcessConfig config = new ZegoCustomVideoProcessConfig();
         config.bufferType = ZegoVideoBufferType.GL_TEXTURE_2D;

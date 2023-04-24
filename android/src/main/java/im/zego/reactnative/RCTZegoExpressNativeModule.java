@@ -512,6 +512,19 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         mSDKEngine = ZegoExpressEngine.createEngine(profile, zegoEventHandler);
         mSDKEngine.enableHardwareEncoder(true);
         mSDKEngine.enableHardwareDecoder(true);
+	//光照加强
+	boolean lowlight = profileParam.hasKey("lowlight") && profileParam.getBoolean("lowlight");;
+        if(lowlight) {
+            mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.AUTO, ZegoPublishChannel.MAIN);
+        }
+	//自适应帧率
+        int minFPS = profileParam.hasKey("minFPS") ? profileParam.getInt("minFPS") : 0;
+        int maxFPS = profileParam.hasKey("maxFPS") ? profileParam.getInt("maxFPS") : 0;
+        if(minFPS > 0 && maxFPS > 0) {
+            mSDKEngine.enableCameraAdaptiveFPS(true, minFPS, maxFPS, ZegoPublishChannel.MAIN);
+        }
+	    
+	mSDKEngine.enableCustomVideoProcessing(true,config,ZegoPublishChannel.MAIN);
 
         ZegoCustomVideoProcessConfig config = new ZegoCustomVideoProcessConfig();
         config.bufferType = ZegoVideoBufferType.GL_TEXTURE_2D;

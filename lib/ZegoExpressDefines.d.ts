@@ -653,7 +653,12 @@ export declare class ZegoEngineProfile {
     appSign: string;
     /** The room scenario. the SDK will optimize the audio and video configuration for the specified scenario to achieve the best effect in this scenario. After specifying the scenario, you can call other APIs to adjusting the audio and video configuration. Differences between scenarios and how to choose a suitable scenario, please refer to https://docs.zegocloud.com/article/14940 */
     scenario: ZegoScenario;
-    constructor(appID: number, appSign: string, scenario: ZegoScenario);
+    
+    lowlight: boolean;
+    minFPS: number;
+    maxFPS: number;
+    
+    constructor(appID: number, appSign: string, scenario: ZegoScenario,lowlight = false,minFPS = 0, maxFPS = 0);
 }
 /**
  * Advanced engine configuration.

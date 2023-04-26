@@ -786,6 +786,7 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
 
                     mSDKEngine.useFrontCamera(true,ZegoPublishChannel.MAIN);
                     mSDKEngine.startPreview(canvas, ZegoPublishChannel.getZegoPublishChannel(channel));
+//                    mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.AUTO,ZegoPublishChannel.MAIN);
 
                     promise.resolve(null);
                 }

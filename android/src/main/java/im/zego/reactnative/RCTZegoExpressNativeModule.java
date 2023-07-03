@@ -563,6 +563,7 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
     @ReactMethod
     public void destroyEngine(final Promise promise) {
         if(kIsInited) {
+	    FURenderer.getInstance().release(); //释放美颜
             ZegoExpressEngine.destroyEngine(new IZegoDestroyCompletionCallback() {
                 @Override
                 public void onDestroyCompletion() {
@@ -782,18 +783,26 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
                     if (canvas != null) {
                         canvas.viewMode = ZegoViewMode.getZegoViewMode(view.getInt("viewMode"));
                         canvas.backgroundColor = view.getInt("backgroundColor");
+                    }else{
+                        WritableMap returnMap = Arguments.createMap();
+                        returnMap.putInt("errorCode", 2);
+                        promise.resolve(returnMap);
+                        return;
                     }
 
                     mSDKEngine.useFrontCamera(true,ZegoPublishChannel.MAIN);
                     mSDKEngine.startPreview(canvas, ZegoPublishChannel.getZegoPublishChannel(channel));
 //                    mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.AUTO,ZegoPublishChannel.MAIN);
-
-                    promise.resolve(null);
+                    WritableMap returnMap = Arguments.createMap();
+                    returnMap.putInt("errorCode", 0);
+                    promise.resolve(returnMap);
                 }
             });
         } else {
             ZegoExpressEngine.getEngine().startPreview(null, ZegoPublishChannel.getZegoPublishChannel(channel));
-            promise.resolve(null);
+            WritableMap returnMap = Arguments.createMap();
+            returnMap.putInt("errorCode", 1);
+            promise.resolve(returnMap);
         }
     }
 

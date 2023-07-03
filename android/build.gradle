@@ -82,7 +82,7 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'  // From node_modules
     implementation 'com.github.zegolibrary:express-video:3.2.1'
-    implementation 'com.faceunity:core_face_all:8.6.0'
-    implementation 'com.faceunity:model_face_all:8.6.0'
+    implementation 'com.faceunity:core_face_beauty_sticker:8.6.0'
+    implementation 'com.faceunity:model_face_beauty_sticker:8.6.0'
 }
 

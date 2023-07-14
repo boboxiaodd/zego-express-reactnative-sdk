@@ -90,7 +90,7 @@ import im.zego.zegoexpress.constants.ZegoNetworkSpeedTestType;
 import im.zego.zegoexpress.constants.ZegoOrientation;
 import im.zego.zegoexpress.constants.ZegoPlayerMediaEvent;
 import im.zego.zegoexpress.constants.ZegoPlayerState;
-import im.zego.zegoexpress.constants.ZegoPlayerVideoLayer;
+
 import im.zego.zegoexpress.constants.ZegoPublishChannel;
 import im.zego.zegoexpress.constants.ZegoPublisherState;
 import im.zego.zegoexpress.constants.ZegoRemoteDeviceState;
@@ -1038,9 +1038,9 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
                 }
                 configObj.cdnConfig = cdnConfigObj;
             }
-            if (config.hasKey("videoLayer")) {
-                configObj.videoLayer = ZegoPlayerVideoLayer.getZegoPlayerVideoLayer(config.getInt("videoLayer"));
-            }
+//            if (config.hasKey("videoLayer")) {
+//                configObj.videoLayer = ZegoPlayerVideoLayer.getZegoPlayerVideoLayer(config.getInt("videoLayer"));
+//            }
             if (config.hasKey("roomID")) {
                 configObj.roomID = config.getString("roomID");
             }

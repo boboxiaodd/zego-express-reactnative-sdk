@@ -489,6 +489,24 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         return textureID;
     }
 
+
+    @ReactMethod
+    public void setLowlightEnhancement(ReadableMap options){
+        int v = options.getInt("value");
+        switch (v){
+            case 0:
+                mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.OFF, ZegoPublishChannel.MAIN);
+                break;
+            case 1:
+                mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.ON, ZegoPublishChannel.MAIN);
+                break;
+            case 2:
+                mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.AUTO,ZegoPublishChannel.MAIN);
+                break;
+        }
+
+    }
+	
     @ReactMethod
     public void createEngineWithProfile(ReadableMap profileParam, Promise promise) {
 

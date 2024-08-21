@@ -5,8 +5,8 @@ export interface SurfaceViewProps extends ViewProps {
     zOrderOnTop?: boolean;
 }
 export declare class ZegoSurfaceView extends Component<SurfaceViewProps, {}> {
-    render(): JSX.Element;
+    render(): any;
 }
 export declare class ZegoTextureView extends Component<{}> {
-    render(): JSX.Element;
+    render(): any;
 }

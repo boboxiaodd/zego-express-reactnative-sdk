@@ -2,9 +2,8 @@
 #import <ZegoExpressEngine/ZegoExpressEngine.h>
 #import <React/RCTConvert.h>
 #import "ZegoCustomVideoProcessManager.h"
+#import "ZegoCustomVideoCaptureManager.h"
 #import "ZegoLog.h"
-#import "FUManager.h"
-#import <FURenderKit/FURenderKit.h>
 
 static NSString* PREFIX = @"im.zego.reactnative.";
 
@@ -17,7 +16,8 @@ ZegoEventHandler,
 ZegoApiCalledEventHandler,
 ZegoMediaPlayerEventHandler,
 ZegoAudioEffectPlayerEventHandler,
-ZegoCustomVideoProcessHandler>
+ZegoDataRecordEventHandler
+>
 
 @property (nonatomic, assign) BOOL hasListeners;
 
@@ -25,8 +25,7 @@ ZegoCustomVideoProcessHandler>
 
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, ZegoMediaPlayer *> *mediaPlayerMap;
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, ZegoAudioEffectPlayer *>* audioEffectPlayerMap;
-@property (nonatomic, strong) ZegoExpressEngine *zego;
-@property (nonatomic, strong) FUBeauty *beauty;
+
 @end
 
 @implementation RCTZegoExpressNativeModule
@@ -47,78 +46,6 @@ RCT_EXPORT_MODULE()
 {
     return @{@"prefix": PREFIX};
 }
-
--(void)init_buauty_render:(NSDictionary *)config {
-    // 加载默认效果
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"face_beautification" ofType:@"bundle"];
-    NSLog(@"face_beautification path = %@",path);
-    _beauty = [[FUBeauty alloc] initWithPath:path name:@"FUBeauty"];
-    //美肤
-    _beauty.heavyBlur = [[config valueForKey:@"heavyBlur"] intValue];      //朦胧磨皮开关, 0为清晰磨皮, 1为朦胧磨皮
-    _beauty.blurType  = [[config valueForKey:@"blurType"] intValue];       //此参数优先级比heavyBlur低, 在使用时要将heavy_blur设为0, 0清晰磨皮 1朦胧磨皮 2精细磨皮 3均匀磨皮
-    // 默认自定义脸型
-    _beauty.faceShape = [[config valueForKey:@"faceShape"] intValue];      //变形取值 0:女神变形 1:网红变形 2:自然变形 3:默认变形 4:精细变形
-    _beauty.faceShapeLevel= [[config valueForKey:@"faceShapeLevel"] doubleValue];  //变形程度 取值范围 0.0-1.0,0.0为无效果, 1.0为最大效果, 默认值1.0
-    
-    _beauty.blurLevel = [[config valueForKey:@"blurLevel"] doubleValue];    //精细磨皮 取值范围0.0-6.0, 默认6.0
-    _beauty.colorLevel = [[config valueForKey:@"colorLevel"] doubleValue];   //美白 取值范围 0.0-1.0,0.0为无效果, 1.0为最大效果, 默认值0.0
-    _beauty.redLevel = [[config valueForKey:@"redLevel"] doubleValue];     //红润 取值范围 0.0-1.0,0.0为无效果, 1.0为最大效果, 默认值0.0
-    _beauty.sharpen = [[config valueForKey:@"sharpen"] doubleValue];      //锐化 取值范围0.0-1.0, 默认0.0
-    _beauty.faceThreed = [[config valueForKey:@"faceThreed"] doubleValue];     //五官立体 取值范围 0.0-1.0, 0.0为无效果, 1.0为最大效果, 默认值0.0
-    _beauty.eyeBright = [[config valueForKey:@"eyeBright"] doubleValue];    //亮眼 0.0-1.0, 0.0为无效果, 1.0为最大效果, 默认值0.0
-    _beauty.toothWhiten = [[config valueForKey:@"toothWhiten"] doubleValue];  //美牙 取值范围 0.0-1.0, 0.0为无效果, 1.0为最大效果, 默认值0.0
-    //美形
-    _beauty.cheekThinning = [[config valueForKey:@"cheekThinning"] doubleValue];    //瘦脸 脸型相关属性, 程度范围0.0-1.0 默认0.0
-    _beauty.cheekV = [[config valueForKey:@"cheekV"] doubleValue];           //V脸
-    _beauty.cheekLong = [[config valueForKey:@"cheekLong"] doubleValue];          //长脸（新）
-    _beauty.cheekCircle = [[config valueForKey:@"cheekCircle"] doubleValue];        //圆脸（新）
-    _beauty.cheekNarrow = [[config valueForKey:@"cheekNarrow"] doubleValue];      //窄脸
-    _beauty.cheekSmall =  [[config valueForKey:@"cheekSmall"] doubleValue];      //小脸
-    _beauty.cheekShort = [[config valueForKey:@"cheekShort"] doubleValue];         //短脸（新）
-    _beauty.intensityCheekbones = [[config valueForKey:@"intensityCheekbones"] doubleValue];//瘦颧骨
-    _beauty.intensityLowerJaw = [[config valueForKey:@"intensityLowerJaw"] doubleValue];  //瘦下颌骨
-    _beauty.intensityNose   = [[config valueForKey:@"intensityNose"] doubleValue];    //瘦鼻
-    _beauty.intensityCanthus = [[config valueForKey:@"intensityCanthus"] doubleValue];   //开眼角
-    _beauty.intensityEyeLid = [[config valueForKey:@"intensityEyeLid"] doubleValue];    //眼睑下至
-    _beauty.intensitySmile  = [[config valueForKey:@"intensitySmile"] doubleValue];    //微笑嘴角
-    _beauty.intensityEyeCircle = [[config valueForKey:@"intensityEyeCircle"] doubleValue]; //圆眼
-    _beauty.intensityChin   = [[config valueForKey:@"intensityChin"] doubleValue];  //下巴 取值范围 0.0-1.0, 0.5-0是变小, 0.5-1是变大, 默认值0.5
-    _beauty.intensityForehead = [[config valueForKey:@"intensityForehead"] doubleValue];//额头
-    _beauty.intensityLipThick =[[config valueForKey:@"intensityLipThick"] doubleValue]; //嘴唇厚度
-    _beauty.intensityEyeHeight =[[config valueForKey:@"intensityEyeHeight"] doubleValue];//眼睛位置
-    _beauty.intensityEyeSpace  =[[config valueForKey:@"intensityEyeSpace"] doubleValue];//眼距
-    _beauty.intensityEyeRotate =[[config valueForKey:@"intensityEyeRotate"] doubleValue];//眼睛角度
-    _beauty.intensityLongNose  =[[config valueForKey:@"intensityLongNose"] doubleValue];//长鼻
-    _beauty.intensityPhiltrum  =[[config valueForKey:@"intensityPhiltrum"] doubleValue];//缩人中
-    _beauty.intensityBrowHeight=[[config valueForKey:@"intensityBrowHeight"] doubleValue];//眉毛上下
-    _beauty.intensityBrowSpace=[[config valueForKey:@"intensityBrowSpace"] doubleValue]; //眉间距
-    _beauty.intensityBrowThick=[[config valueForKey:@"intensityBrowThick"] doubleValue]; //眉毛粗细
-    //滤镜
-    _beauty.filterName  = [config valueForKey:@"filterName"];  //取值为一个字符串, 默认值为 “origin” , origin即为使用原图效果
-    _beauty.filterLevel = [[config valueForKey:@"filterLevel"] doubleValue];         //取值范围 0.0-1.0,0.0为无效果, 1.0为最大效果, 默认值1.0
-    
-    [FURenderKit shareRenderKit].beauty = _beauty;
-}
-
-
-
-#pragma mark ZegoCustomVideoProcessHandler
-
-- (void)onStart:(ZegoPublishChannel)channel{
-    [FURenderKit shareRenderKit].beauty = _beauty;
-}
-- (void)onStop:(ZegoPublishChannel)channel{
-    [FURenderKit clear];
-}
-- (void)onCapturedUnprocessedCVPixelBuffer:(CVPixelBufferRef)buffer timestamp:(CMTime)timestamp channel:(ZegoPublishChannel)channel{
-    if ([FUManager shareManager].isRender) {
-        FURenderInput *input = [[FURenderInput alloc] init];
-        input.pixelBuffer = buffer;
-        FURenderOutput *output = [[FURenderKit shareRenderKit] renderWithInput:input];
-        [[ZegoExpressEngine sharedEngine] sendCustomVideoProcessedCVPixelBuffer:output.pixelBuffer timestamp:timestamp channel:channel];
-    }
-}
-
 
 -(void)startObserving {
     // Set up any upstream listeners or background tasks as necessary
@@ -147,15 +74,6 @@ RCT_EXPORT_MODULE()
     [ZegoExpressEngine setEngineConfig:configObject];
 }
 
-RCT_EXPORT_METHOD(setBeauty:(NSString *)key :(id)value)
-{
-    [_beauty setValue:value forKey:key];
-}
-RCT_EXPORT_METHOD(initBeauty:(NSDictionary *)config)
-{
-    [self init_buauty_render:config];
-}
-
 RCT_EXPORT_METHOD(getVersion:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -168,27 +86,24 @@ RCT_EXPORT_METHOD(createEngineWithProfile:(NSDictionary *)profileMap
 {
     // Report framework info
     [self reportPluginInfo];
-    if(!_zego){
-        [ZegoExpressEngine setApiCalledCallback:self];
-        unsigned int appID = (unsigned int)[RCTConvert NSUInteger:profileMap[@"appID"]];
-        unsigned int scenario = (unsigned int)[RCTConvert NSUInteger:profileMap[@"scenario"]];
-        ZegoEngineProfile *profile = [ZegoEngineProfile new];
-        profile.appID = appID;
-        profile.scenario = scenario;
-        
-        _zego = [ZegoExpressEngine createEngineWithProfile:profile eventHandler:self];
-        [_zego enableHardwareDecoder:YES];
-        [_zego enableHardwareEncoder:YES];
 
-//        [_zego setVideoMirrorMode:ZegoVideoMirrorModeNoMirror channel:ZegoPublishChannelMain];
-        [FUManager shareManager].isRender = YES;
-        
-        ZegoCustomVideoProcessConfig *config = [[ZegoCustomVideoProcessConfig alloc] init];
-        config.bufferType = ZegoVideoBufferTypeCVPixelBuffer;
-        [_zego enableCustomVideoProcessing:YES config:config];
-        [_zego setCustomVideoProcessHandler: self];
+    // Fix hot update did not destroy the engine
+    [ZegoExpressEngine destroyEngine:nil];
     
-    }
+    [ZegoExpressEngine setApiCalledCallback:self];
+
+    unsigned int appID = (unsigned int)[RCTConvert NSUInteger:profileMap[@"appID"]];
+    NSString *appSign = [RCTConvert NSString:profileMap[@"appSign"]];
+    ZegoScenario scenario = [RCTConvert NSUInteger:profileMap[@"scenario"]];
+
+    ZGLog(@"createEngineWithProfile: app id: %lu, app sign: %@, scenario: %td", (unsigned long)appID, appSign, scenario);
+
+    ZegoEngineProfile *profile = [ZegoEngineProfile new];
+    profile.appID = appID;
+    profile.appSign = appSign;
+    profile.scenario = scenario;
+    [ZegoExpressEngine createEngineWithProfile:profile eventHandler:self];
+    
     kIsInited = true;
     resolve(nil);
 }
@@ -202,6 +117,9 @@ RCT_EXPORT_METHOD(createEngine:(NSUInteger)appID
 {
     // Report framework info
     [self reportPluginInfo];
+
+    // Fix hot update did not destroy the engine
+    [ZegoExpressEngine destroyEngine:nil];
     
     [ZegoExpressEngine setApiCalledCallback:self];
     
@@ -209,8 +127,6 @@ RCT_EXPORT_METHOD(createEngine:(NSUInteger)appID
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     [ZegoExpressEngine createEngineWithAppID:(unsigned int)appID appSign:appSign isTestEnv:isTestEnv scenario:(ZegoScenario)scenario eventHandler:self];
-    
-    
 #pragma clang diagnostic pop
     kIsInited = true;
     resolve(nil);
@@ -471,19 +387,22 @@ RCT_EXPORT_METHOD(startPreview:(NSDictionary *)view
     ZegoCanvas *canvas = nil;
 
     if(view && view.count > 0) {
-        NSString *nativeID = [RCTConvert NSString:view[@"nativeID"]];
-        NSNumber *rootTag  = [RCTConvert NSNumber:view[@"rootTag"]];
-        NSLog(@"nativeID = %@ , rootTag = %@", nativeID, rootTag);
-//        NSNumber *viewTag = [RCTConvert NSNumber:view[@"reactTag"]];
-//        UIView *uiView = [self.bridge.uiManager viewForReactTag:viewTag];
-        UIView *uiView = [self.bridge.uiManager viewForNativeID:nativeID withRootTag: rootTag];
+        NSNumber *viewTag = [RCTConvert NSNumber:view[@"reactTag"]];
+        UIView *uiView = [self.bridge.uiManager viewForReactTag:viewTag];
         
         canvas = [[ZegoCanvas alloc] initWithView:uiView];
         canvas.viewMode = (ZegoViewMode)[RCTConvert int:view[@"viewMode"]];
         canvas.backgroundColor = [RCTConvert int:view[@"backgroundColor"]];
+        
+        if (view[@"alphaBlend"] && [RCTConvert BOOL:view[@"alphaBlend"]]) {
+            [uiView setBackgroundColor:UIColor.clearColor];
+            canvas.alphaBlend = [RCTConvert BOOL:view[@"alphaBlend"]];
+        }
+        
     }
-    [_zego useFrontCamera:YES];
-    [_zego startPreview:canvas channel: (ZegoPublishChannel)channel];
+    
+    [[ZegoExpressEngine sharedEngine] startPreview:canvas channel: (ZegoPublishChannel)channel];
+    
     resolve(nil);
 }
 
@@ -618,17 +537,18 @@ RCT_EXPORT_METHOD(setAppOrientation:(int)orientation
 }
 
 RCT_EXPORT_METHOD(setAudioConfig:(NSDictionary *)config
+                  channel:(int)channel
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    ZGLog(@"setAudioConfig: config: %@", config);
+    ZGLog(@"setAudioConfig: config: %@, channel: %d", config, channel);
     
     ZegoAudioConfig *configObj = [[ZegoAudioConfig alloc] init];
     configObj.bitrate = [RCTConvert int:config[@"bitrate"]];
     configObj.channel = (ZegoAudioChannel)[RCTConvert NSInteger:config[@"channel"]];
     configObj.codecID = (ZegoAudioCodecID)[RCTConvert NSInteger:config[@"codecID"]];
     
-    [[ZegoExpressEngine sharedEngine] setAudioConfig:configObj];
+    [[ZegoExpressEngine sharedEngine] setAudioConfig:configObj channel:(ZegoPublishChannel)channel];
     
     resolve(nil);
 }
@@ -723,7 +643,7 @@ RCT_EXPORT_METHOD(sendSEI:(NSArray *)dataArray
     Byte* bytes = calloc(dataArray.count, sizeof(Byte));
     
     [dataArray enumerateObjectsUsingBlock:^(NSNumber* number, NSUInteger index, BOOL* stop){
-        bytes[index] = number.integerValue;
+        bytes[index] = number.charValue;
     }];
 
     NSData *data = [[NSData alloc] initWithBytes:bytes length:dataArray.count];
@@ -791,6 +711,45 @@ RCT_EXPORT_METHOD(isVideoEncoderSupported:(int)codecID
     resolve(@(result));
 }
 
+RCT_EXPORT_METHOD(enableVideoObjectSegmentation:(BOOL)enable 
+                config:(NSDictionary *)config 
+                channel:(int)channel
+                resolver:(RCTPromiseResolveBlock)resolve
+                rejecter:(RCTPromiseRejectBlock)reject)
+{
+    ZGLog(@"enableVideoObjectSegmentation: enable: %d, config: %@, channel: %d", enable, config, channel);
+
+    ZegoObjectSegmentationConfig *segmentationConfig = [[ZegoObjectSegmentationConfig alloc] init];
+    if (config && config.count > 0) {
+        ZegoBackgroundConfig *backgroundConfig = [[ZegoBackgroundConfig alloc] init];
+        NSDictionary *backgroundConfigMap = config[@"backgroundConfig"];
+        if (backgroundConfigMap && backgroundConfigMap.count > 0) {
+            backgroundConfig.processType = (ZegoBackgroundProcessType)[RCTConvert NSUInteger:backgroundConfigMap[@"processType"]];
+            backgroundConfig.blurLevel = (ZegoBackgroundBlurLevel)[RCTConvert NSUInteger:backgroundConfigMap[@"processType"]];
+            backgroundConfig.color = [RCTConvert int:backgroundConfigMap[@"color"]];
+            backgroundConfig.videoURL = [RCTConvert NSString:backgroundConfigMap[@"imageURL"]];
+            backgroundConfig.imageURL = [RCTConvert NSString:backgroundConfigMap[@"imageURL"]];
+
+            segmentationConfig.backgroundConfig = backgroundConfig;
+        }
+        segmentationConfig.objectSegmentationType = (ZegoObjectSegmentationType)[RCTConvert NSUInteger:config[@"objectSegmentationType"]];
+    }
+
+    [[ZegoExpressEngine sharedEngine] enableVideoObjectSegmentation:enable config:segmentationConfig channel:(ZegoPublishChannel)channel];
+}
+
+RCT_EXPORT_METHOD(enableAlphaChannelVideoEncoder:(BOOL)enable 
+                alphaLayout:(int)alphaLayout 
+                channel:(int)channel
+                resolver:(RCTPromiseResolveBlock)resolve
+                rejecter:(RCTPromiseRejectBlock)reject)
+{
+    ZGLog(@"enableAlphaChannelVideoEncoder: enable: %d, alphaLayout: %d, channel: %d", enable, alphaLayout, channel);
+
+    [[ZegoExpressEngine sharedEngine] enableAlphaChannelVideoEncoder:enable alphaLayout:(ZegoAlphaLayoutType)alphaLayout channel:(ZegoPublishChannel)channel];
+
+}
+
 RCT_EXPORT_METHOD(startPlayingStream:(NSString *)streamID
                   view:(NSDictionary *)view
                   config:(NSDictionary *)config
@@ -810,12 +769,6 @@ RCT_EXPORT_METHOD(startPlayingStream:(NSString *)streamID
             cdnConfigObj.authParam = [RCTConvert NSString:cdnConfig[@"authParam"]];
             configObj.cdnConfig = cdnConfigObj;
         }
-        if (config[@"videoLayer"]) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-            configObj.videoLayer = [RCTConvert NSUInteger:config[@"videoLayer"]];
-#pragma clang diagnostic pop
-        }
         if (config[@"roomID"]) {
             configObj.roomID = [RCTConvert NSString:config[@"roomID"]];
         }
@@ -830,14 +783,17 @@ RCT_EXPORT_METHOD(startPlayingStream:(NSString *)streamID
     ZegoCanvas *canvas = nil;
 
     if(view && view.count > 0) {
-        NSNumber *rootTag = [RCTConvert NSNumber:view[@"rootTag"]];
-        NSString *nativeID = [RCTConvert NSString:view[@"nativeID"]];
-        UIView *uiView = [self.bridge.uiManager viewForNativeID:nativeID withRootTag:rootTag];
-//        UIView *uiView = [self.bridge.uiManager viewForReactTag:viewTag];
+        NSNumber *viewTag = [RCTConvert NSNumber:view[@"reactTag"]];
+        UIView *uiView = [self.bridge.uiManager viewForReactTag:viewTag];
         
         canvas = [[ZegoCanvas alloc] initWithView:uiView];
         canvas.viewMode = (ZegoViewMode)[RCTConvert int:view[@"viewMode"]];
         canvas.backgroundColor = [RCTConvert int:view[@"backgroundColor"]];
+        
+        if (view[@"alphaBlend"] && [RCTConvert BOOL:view[@"alphaBlend"]]) {
+            [uiView setBackgroundColor:UIColor.clearColor];
+            canvas.alphaBlend = [RCTConvert BOOL:view[@"alphaBlend"]];
+        }
     }
 
     [[ZegoExpressEngine sharedEngine] startPlayingStream:streamID canvas:canvas config:configObj];
@@ -1039,8 +995,9 @@ RCT_EXPORT_METHOD(useFrontCamera:(BOOL)enable
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     ZGLog(@"useFrontCamera: enable: %d, channel: %d", enable, channel);
-    [_zego useFrontCamera:enable];
-
+    
+    [[ZegoExpressEngine sharedEngine] useFrontCamera:enable];
+    
     resolve(nil);
 }
 
@@ -1222,6 +1179,31 @@ RCT_EXPORT_METHOD(sendCustomCommand:(NSString *)roomID
     }];
 }
 
+RCT_EXPORT_METHOD(startRecordingCapturedData:(NSDictionary *)configMap
+                  channel:(int)channel
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    ZGLog(@"startRecordingCapturedData. channel: %d", channel);
+    
+    ZegoDataRecordConfig *recordConfig = [[ZegoDataRecordConfig alloc] init];
+    if (configMap) {
+        recordConfig.recordType = (ZegoDataRecordType) configMap[@"recordType"];
+        recordConfig.filePath = configMap[@"filePath"];
+    }
+    [[ZegoExpressEngine sharedEngine] setDataRecordEventHandler:self];
+    [[ZegoExpressEngine sharedEngine] startRecordingCapturedData:recordConfig channel:(ZegoPublishChannel) channel];
+}
+
+RCT_EXPORT_METHOD(stopRecordingCapturedData:(int)channel
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    ZGLog(@"stopRecordingCapturedData. channel: %d", channel);
+    
+    [[ZegoExpressEngine sharedEngine] stopRecordingCapturedData:(ZegoPublishChannel) channel];
+}
+
 RCT_EXPORT_METHOD(enableCustomAudioIO:(BOOL)enable
                   config:(NSDictionary *)configMap
                   channel:(int)channel
@@ -1237,6 +1219,29 @@ RCT_EXPORT_METHOD(enableCustomAudioIO:(BOOL)enable
 
     [[ZegoExpressEngine sharedEngine] enableCustomAudioIO:enable config:audioConfig channel:channel];
         
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(enableCustomVideoCapture:(BOOL)enable
+                  config:(NSDictionary *)config
+                  channel:(int)channel
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    ZGLog(@"enableCustomVideoCapture. enable: %d", enable);
+    
+    ZegoCustomVideoCaptureConfig *configObject = [[ZegoCustomVideoCaptureConfig alloc] init];
+    configObject.bufferType = ZegoVideoBufferTypeCVPixelBuffer;
+
+    if (config && config[@"bufferType"]) {
+        configObject.bufferType = [RCTConvert NSUInteger:config[@"bufferType"]];
+    }
+    if (enable) {
+        [[ZegoExpressEngine sharedEngine] setCustomVideoCaptureHandler:[ZegoCustomVideoCaptureManager sharedInstance]];
+    } else {
+        [[ZegoExpressEngine sharedEngine] setCustomVideoCaptureHandler:nil];
+    }
+    [[ZegoExpressEngine sharedEngine] enableCustomVideoCapture:enable config:configObject channel:channel];
+    
     resolve(nil);
 }
 
@@ -1414,6 +1419,11 @@ RCT_EXPORT_METHOD(mediaPlayerSetPlayerCanvas:(nonnull NSNumber *)index
     ZegoCanvas *canvas = [[ZegoCanvas alloc] initWithView:uiView];
     canvas.viewMode = (ZegoViewMode)[RCTConvert int:view[@"viewMode"]];
     canvas.backgroundColor = [RCTConvert int:view[@"backgroundColor"]];
+
+    if (view[@"alphaBlend"] && [RCTConvert BOOL:view[@"alphaBlend"]]) {
+        [uiView setBackgroundColor:UIColor.clearColor];
+        canvas.alphaBlend = [RCTConvert BOOL:view[@"alphaBlend"]];
+    }
     
     ZegoMediaPlayer *mediaPlayer = self.mediaPlayerMap[index];
     
@@ -1438,6 +1448,35 @@ RCT_EXPORT_METHOD(mediaPlayerLoadResource:(nonnull NSNumber *)index
         }];
     }
 }
+
+RCT_EXPORT_METHOD(mediaPlayerLoadResourceWithConfig:(nonnull NSNumber *)index
+                  config:(NSDictionary *)configMap
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    ZGLog(@"mediaPlayerLoadResourceWithConfig, index: %@", index);
+    
+    ZegoMediaPlayerResource *resource = [[ZegoMediaPlayerResource alloc] init];
+    if (configMap && [configMap isKindOfClass:[NSDictionary class]]) {
+        resource.resourceID = [RCTConvert NSString:configMap[@"resourceID"]];
+        resource.loadType = [RCTConvert NSUInteger:configMap[@"loadType"]];
+        resource.startPosition = [RCTConvert NSUInteger:configMap[@"startPosition"]];
+        resource.alphaLayout = [RCTConvert NSUInteger:configMap[@"alphaLayout"]];
+        resource.filePath = [RCTConvert NSString:configMap[@"filePath"]];
+        if (configMap[@"memory"]) {
+            resource.memory = [configMap[@"memory"] dataValue];
+            resource.memoryLength = (int)[RCTConvert NSInteger:configMap[@"memoryLength"]];
+        }
+    }
+    
+    ZegoMediaPlayer *mediaPlayer = self.mediaPlayerMap[index];
+    if (mediaPlayer) {
+        [mediaPlayer loadResourceWithConfig:resource callback:^(int errorCode) {
+            resolve(@{@"errorCode":@(errorCode)});
+        }];
+    }
+}
+
 
 RCT_EXPORT_METHOD(mediaPlayerStart:(nonnull NSNumber *)index
                   resolver:(RCTPromiseResolveBlock)resolve
@@ -1723,6 +1762,20 @@ RCT_EXPORT_METHOD(mediaPlayerGetCurrentState:(nonnull NSNumber *)index
         resolve(@(0));
     }
 }
+
+RCT_EXPORT_METHOD(mediaPlayerGetCurrentRenderingProgress:(nonnull NSNumber *)index
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    ZegoMediaPlayer *mediaPlayer = self.mediaPlayerMap[index];
+    
+    if(mediaPlayer) {
+        resolve(@(mediaPlayer.currentRenderingProgress));
+    } else {
+        resolve(@(0));
+    }
+}
+
 
 RCT_EXPORT_METHOD(createAudioEffectPlayer:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -2631,6 +2684,14 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
     }
 }
 
+- (void)onVideoObjectSegmentationStateChanged:(ZegoObjectSegmentationState)state channel:(ZegoPublishChannel)channel errorCode:(int)errorCode {
+    ZGLog(@"[onVideoObjectSegmentationStateChanged] state: %td, channel: %td, errorCode: %d", state, channel, errorCode);
+    if(self.hasListeners) {
+        [self sendEventWithName:RN_EVENT(@"videoObjectSegmentationStateChanged")
+                           body:@{@"data":@[@(state), @(channel), @(errorCode)]}];
+    }
+}
+
 # pragma mark player
 - (void)onPlayerStateUpdate:(ZegoPlayerState)state errorCode:(int)errorCode extendedData:(nullable NSDictionary *)extendedData streamID:(NSString *)streamID
 {
@@ -2704,6 +2765,21 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
     if(self.hasListeners) {
         [self sendEventWithName:RN_EVENT(@"playerRecvVideoFirstFrame")
                            body:@{@"data":@[streamID]}];
+    }
+}
+
+- (void)onPlayerRecvSEI:(NSData *)data streamID:(NSString *)streamID {
+    ZGLog(@"[onPlayerRecvSEI] stream id: %@", streamID);
+    if(self.hasListeners) {
+        
+        NSMutableArray *SEIArray = [[NSMutableArray alloc] init];
+        char *bytes = (char *)[data bytes];
+        for (int i = 0; i < data.length; i++) {
+            [SEIArray addObject:@(bytes[i])];
+        }
+        
+        [self sendEventWithName:RN_EVENT(@"playerRecvSEI")
+                           body:@{@"data":@[streamID, SEIArray]}];
     }
 }
 
@@ -2915,6 +2991,15 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
     }
 }
 
+- (void)mediaPlayer:(ZegoMediaPlayer *)mediaPlayer renderingProgress:(unsigned long long)millisecond {
+    if(self.hasListeners) {
+        [self sendEventWithName:RN_EVENT(@"mediaPlayerRenderingProgress")
+                           body:@{@"data": @[@(millisecond)],
+                                  @"idx": mediaPlayer.index
+                           }];
+    }
+}
+
 # pragma mark audio
 - (void)audioEffectPlayer:(ZegoAudioEffectPlayer *)audioEffectPlayer audioEffectID:(unsigned int)audioEffectID playStateUpdate:(ZegoAudioEffectPlayState)state errorCode:(int)errorCode {
   if (self.hasListeners) {
@@ -2924,6 +3009,30 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
                          @"idx": audioEffectPlayer.getIndex
                        }];
   }
+}
+
+#pragma mark Data Recording
+- (void)onCapturedDataRecordProgressUpdate:(ZegoDataRecordProgress *)progress config:(ZegoDataRecordConfig *)config channel:(ZegoPublishChannel)channel {
+    if(self.hasListeners) {
+        
+        NSDictionary *progressMap = @{@"duration": @(progress.duration), @"currentFileSize": @(progress.currentFileSize)};
+        NSDictionary *configMap = @{@"recordType": @(config.recordType), @"currentFileSize": config.filePath};
+
+        
+        [self sendEventWithName:RN_EVENT(@"capturedDataRecordProgressUpdate")
+                           body:@{@"data":@[progressMap, configMap, @(channel)]}];
+    }
+}
+
+- (void)onCapturedDataRecordStateUpdate:(ZegoDataRecordState)state errorCode:(int)errorCode config:(ZegoDataRecordConfig *)config channel:(ZegoPublishChannel)channel {
+    if(self.hasListeners) {
+        
+        NSDictionary *configMap = @{@"recordType": @(config.recordType), @"currentFileSize": config.filePath};
+
+        
+        [self sendEventWithName:RN_EVENT(@"capturedDataRecordStateUpdate")
+                           body:@{@"data":@[@(state), @(errorCode), configMap, @(channel)]}];
+    }
 }
 
 #pragma mark - Network Speed Test
@@ -2976,11 +3085,13 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
       RN_EVENT(@"publisherVideoSizeChanged"),
       RN_EVENT(@"publisherVideoEncoderChanged"),
       RN_EVENT(@"publisherStreamEvent"),
+      RN_EVENT(@"videoObjectSegmentationStateChanged"),
       RN_EVENT(@"playerStateUpdate"),
       RN_EVENT(@"playerQualityUpdate"),
       RN_EVENT(@"playerMediaEvent"),
       RN_EVENT(@"playerRecvAudioFirstFrame"),
       RN_EVENT(@"playerRecvVideoFirstFrame"),
+      RN_EVENT(@"playerRecvSEI"),
       RN_EVENT(@"playerRenderVideoFirstFrame"),
       RN_EVENT(@"playerVideoSizeChanged"),
       RN_EVENT(@"capturedSoundLevelUpdate"),
@@ -2992,16 +3103,20 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
       RN_EVENT(@"mediaPlayerStateUpdate"),
       RN_EVENT(@"mediaPlayerNetworkEvent"),
       RN_EVENT(@"mediaPlayerPlayingProgress"),
+      RN_EVENT(@"mediaPlayerRenderingProgress"),
       RN_EVENT(@"audioEffectPlayerStateUpdate"),
       RN_EVENT(@"IMRecvBroadcastMessage"),
       RN_EVENT(@"IMRecvBarrageMessage"),
       RN_EVENT(@"IMRecvCustomCommand"),
       RN_EVENT(@"mixerRelayCDNStateUpdate"),
       RN_EVENT(@"mixerSoundLevelUpdate"),
+      RN_EVENT(@"capturedDataRecordProgressUpdate"),
+      RN_EVENT(@"capturedDataRecordStateUpdate"),
       RN_EVENT(@"networkSpeedTestError"),
       RN_EVENT(@"networkSpeedTestQualityUpdate"),
       RN_EVENT(@"networkQuality")
       ];
 }
+
 
 @end

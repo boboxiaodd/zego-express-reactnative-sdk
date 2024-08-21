@@ -25,6 +25,10 @@ public class ZegoSurfaceView extends FrameLayout {
         surfaceView.setZOrderMediaOverlay(isMediaOverlay);
         addView(surfaceView);
     }
+    
+    public void setPixelFormat(int format) {
+        surfaceView.getHolder().setFormat(format);
+    }
 
     public void setZOrderOnTop(boolean onTop) {
         removeView(surfaceView);

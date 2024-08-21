@@ -2,59 +2,44 @@ package im.zego.reactnative;
 
 import android.app.Application;
 import android.graphics.Bitmap;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
-import android.hardware.camera2.params.DeviceStateSensorOrientationMap;
-import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
-import android.os.Build;
-import android.os.SystemClock;
-import android.util.Log;
 import android.view.View;
 import android.view.TextureView;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.uimanager.NativeViewHierarchyManager;
 import com.facebook.react.uimanager.UIBlock;
 import com.facebook.react.uimanager.UIManagerModule;
 
-import com.facebook.react.uimanager.util.ReactFindViewUtil;
-import com.faceunity.core.entity.FUBundleData;
-import com.faceunity.core.entity.FURenderInputData;
-import com.faceunity.core.entity.FURenderOutputData;
-import com.faceunity.core.enumeration.FUInputTextureEnum;
-import com.faceunity.core.enumeration.FUTransformMatrixEnum;
-import com.faceunity.core.faceunity.FURenderKit;
-import com.faceunity.core.model.facebeauty.FaceBeauty;
-import com.zego.zegoavkit2.screencapture.ve_gl.GlUtil;
-
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 
-import im.zego.reactnative.faceunity.FURenderer;
 import im.zego.zegoexpress.*;
 import im.zego.zegoexpress.callback.IZegoApiCalledEventHandler;
 import im.zego.zegoexpress.callback.IZegoAudioEffectPlayerEventHandler;
 import im.zego.zegoexpress.callback.IZegoAudioEffectPlayerLoadResourceCallback;
 import im.zego.zegoexpress.callback.IZegoAudioEffectPlayerSeekToCallback;
+import im.zego.zegoexpress.callback.IZegoDataRecordEventHandler;
 import im.zego.zegoexpress.callback.IZegoDestroyCompletionCallback;
 import im.zego.zegoexpress.callback.IZegoEventHandler;
 import im.zego.zegoexpress.callback.IZegoIMSendBarrageMessageCallback;
@@ -74,23 +59,30 @@ import im.zego.zegoexpress.callback.IZegoRoomLogoutCallback;
 import im.zego.zegoexpress.callback.IZegoRoomSetRoomExtraInfoCallback;
 import im.zego.zegoexpress.constants.ZegoAECMode;
 import im.zego.zegoexpress.constants.ZegoANSMode;
+import im.zego.zegoexpress.constants.ZegoAlphaLayoutType;
 import im.zego.zegoexpress.constants.ZegoAudioChannel;
 import im.zego.zegoexpress.constants.ZegoAudioCodecID;
 import im.zego.zegoexpress.constants.ZegoAudioEffectPlayState;
 import im.zego.zegoexpress.constants.ZegoAudioRoute;
+import im.zego.zegoexpress.constants.ZegoAudioSampleRate;
 import im.zego.zegoexpress.constants.ZegoAudioSourceType;
+import im.zego.zegoexpress.constants.ZegoBackgroundBlurLevel;
+import im.zego.zegoexpress.constants.ZegoBackgroundProcessType;
+import im.zego.zegoexpress.constants.ZegoDataRecordState;
+import im.zego.zegoexpress.constants.ZegoDataRecordType;
 import im.zego.zegoexpress.constants.ZegoDeviceExceptionType;
 import im.zego.zegoexpress.constants.ZegoDeviceType;
 import im.zego.zegoexpress.constants.ZegoElectronicEffectsMode;
-import im.zego.zegoexpress.constants.ZegoLowlightEnhancementMode;
 import im.zego.zegoexpress.constants.ZegoMediaPlayerNetworkEvent;
 import im.zego.zegoexpress.constants.ZegoMediaPlayerState;
 import im.zego.zegoexpress.constants.ZegoMixerInputContentType;
+import im.zego.zegoexpress.constants.ZegoMultimediaLoadType;
 import im.zego.zegoexpress.constants.ZegoNetworkSpeedTestType;
+import im.zego.zegoexpress.constants.ZegoObjectSegmentationState;
+import im.zego.zegoexpress.constants.ZegoObjectSegmentationType;
 import im.zego.zegoexpress.constants.ZegoOrientation;
 import im.zego.zegoexpress.constants.ZegoPlayerMediaEvent;
 import im.zego.zegoexpress.constants.ZegoPlayerState;
-
 import im.zego.zegoexpress.constants.ZegoPublishChannel;
 import im.zego.zegoexpress.constants.ZegoPublisherState;
 import im.zego.zegoexpress.constants.ZegoRemoteDeviceState;
@@ -99,13 +91,13 @@ import im.zego.zegoexpress.constants.ZegoRoomMode;
 import im.zego.zegoexpress.constants.ZegoRoomState;
 import im.zego.zegoexpress.constants.ZegoRoomStateChangedReason;
 import im.zego.zegoexpress.constants.ZegoScenario;
+import im.zego.zegoexpress.constants.ZegoScreenCaptureExceptionType;
 import im.zego.zegoexpress.constants.ZegoStreamEvent;
 import im.zego.zegoexpress.constants.ZegoStreamQualityLevel;
 import im.zego.zegoexpress.constants.ZegoStreamResourceMode;
 import im.zego.zegoexpress.constants.ZegoUpdateType;
 import im.zego.zegoexpress.constants.ZegoVideoBufferType;
 import im.zego.zegoexpress.constants.ZegoVideoCodecID;
-import im.zego.zegoexpress.constants.ZegoVideoFrameFormat;
 import im.zego.zegoexpress.constants.ZegoVideoMirrorMode;
 import im.zego.zegoexpress.constants.ZegoVideoSourceType;
 import im.zego.zegoexpress.constants.ZegoViewMode;
@@ -113,6 +105,8 @@ import im.zego.zegoexpress.constants.ZegoVideoStreamType;
 import im.zego.zegoexpress.constants.ZegoVoiceChangerPreset;
 import im.zego.zegoexpress.entity.ZegoAudioConfig;
 import im.zego.zegoexpress.entity.ZegoAudioEffectPlayConfig;
+import im.zego.zegoexpress.entity.ZegoAudioFrameParam;
+import im.zego.zegoexpress.entity.ZegoBackgroundConfig;
 import im.zego.zegoexpress.entity.ZegoBarrageMessageInfo;
 import im.zego.zegoexpress.entity.ZegoBeautifyOption;
 import im.zego.zegoexpress.entity.ZegoBroadcastMessageInfo;
@@ -121,10 +115,13 @@ import im.zego.zegoexpress.entity.ZegoCanvas;
 import im.zego.zegoexpress.entity.ZegoCustomAudioConfig;
 import im.zego.zegoexpress.entity.ZegoCustomVideoCaptureConfig;
 import im.zego.zegoexpress.entity.ZegoCustomVideoProcessConfig;
+import im.zego.zegoexpress.entity.ZegoDataRecordConfig;
+import im.zego.zegoexpress.entity.ZegoDataRecordProgress;
 import im.zego.zegoexpress.entity.ZegoEffectsBeautyParam;
 import im.zego.zegoexpress.entity.ZegoEngineConfig;
 import im.zego.zegoexpress.entity.ZegoEngineProfile;
 import im.zego.zegoexpress.entity.ZegoLogConfig;
+import im.zego.zegoexpress.entity.ZegoMediaPlayerResource;
 import im.zego.zegoexpress.entity.ZegoMixerAudioConfig;
 import im.zego.zegoexpress.entity.ZegoMixerInput;
 import im.zego.zegoexpress.entity.ZegoMixerOutput;
@@ -133,6 +130,7 @@ import im.zego.zegoexpress.entity.ZegoMixerVideoConfig;
 import im.zego.zegoexpress.entity.ZegoNetworkSpeedTestConfig;
 import im.zego.zegoexpress.entity.ZegoNetworkSpeedTestQuality;
 import im.zego.zegoexpress.entity.ZegoNetworkTimeInfo;
+import im.zego.zegoexpress.entity.ZegoObjectSegmentationConfig;
 import im.zego.zegoexpress.entity.ZegoPlayStreamQuality;
 import im.zego.zegoexpress.entity.ZegoPlayerConfig;
 import im.zego.zegoexpress.entity.ZegoPublisherConfig;
@@ -141,16 +139,15 @@ import im.zego.zegoexpress.entity.ZegoReverbAdvancedParam;
 import im.zego.zegoexpress.entity.ZegoReverbEchoParam;
 import im.zego.zegoexpress.entity.ZegoRoomConfig;
 import im.zego.zegoexpress.entity.ZegoRoomExtraInfo;
+import im.zego.zegoexpress.entity.ZegoScreenCaptureConfig;
 import im.zego.zegoexpress.entity.ZegoSoundLevelConfig;
 import im.zego.zegoexpress.entity.ZegoStream;
 import im.zego.zegoexpress.entity.ZegoStreamRelayCDNInfo;
 import im.zego.zegoexpress.entity.ZegoUser;
 import im.zego.zegoexpress.entity.ZegoVideoConfig;
-import im.zego.zegoexpress.entity.ZegoVideoFrameParam;
 import im.zego.zegoexpress.entity.ZegoVoiceChangerParam;
 
-
-public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule implements IZegoReactNativeCustomVideoProcessHandler {
+public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 
     private static final String Prefix = "im.zego.reactnative.";
 
@@ -162,15 +159,6 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
 
     private HashMap<Integer, ZegoMediaPlayer> mediaPlayerMap;
     private HashMap<Integer, ZegoAudioEffectPlayer> audioEffectPlayerMap;
-
-
-
-    private ZegoExpressEngine mSDKEngine;
-    private static final int DEFAULT_VIDEO_WIDTH = 360;
-    private static final int DEFAULT_VIDEO_HEIGHT = 640;
-    private FURenderer mFURenderer;
-    private ZegoCustomVideoProcessManager customVideoProcessManager;
-    private FaceBeauty beauty;
 
     public RCTZegoExpressNativeModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -271,8 +259,6 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         ZegoExpressEngine.setEngineConfig(configObject);
     }
 
-
-
     // Required for rn built in EventEmitter Calls.
     @ReactMethod
     public void addListener(String eventName) {
@@ -284,229 +270,11 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
 
     }
 
-    public static String BUNDLE_FACE_BEAUTIFICATION = "graphics" + File.separator + "face_beautification.bundle";
-
-    @ReactMethod
-    public void initBeauty(ReadableMap config){
-        beauty = new FaceBeauty(new FUBundleData(BUNDLE_FACE_BEAUTIFICATION));
-        /*滤镜*/
-        beauty.setFilterName(config.getString("filterName"));
-        beauty.setFilterIntensity(config.getDouble("filterLevel"));
-        /*美肤*/
-        int v = config.getInt("heavyBlur");
-        beauty.setEnableHeavyBlur(v != 0);
-        beauty.setBlurType(config.getInt("blurType"));
-        beauty.setFaceShape(config.getInt("faceShape"));
-        beauty.setFaceShapeIntensity(config.getDouble("faceShapeLevel"));
-        beauty.setBlurIntensity(config.getDouble("blurLevel"));
-        beauty.setColorIntensity(config.getDouble("colorLevel"));
-        beauty.setRedIntensity(config.getDouble("redLevel"));
-        beauty.setSharpenIntensity(config.getDouble("sharpen"));
-        beauty.setFaceThreeIntensity(config.getDouble("faceThreed"));
-        beauty.setEyeBrightIntensity(config.getDouble("eyeBright"));
-        beauty.setToothIntensity(config.getDouble("toothWhiten"));
-        /*美形*/
-        beauty.setCheekThinningIntensity(config.getDouble("cheekThinning"));
-        beauty.setCheekVIntensity(config.getDouble("cheekV"));
-        beauty.setCheekLongIntensity(config.getDouble("cheekLong"));
-        beauty.setCheekCircleIntensity(config.getDouble("cheekCircle"));
-        beauty.setCheekNarrowIntensity(config.getDouble("cheekNarrow"));
-        beauty.setCheekSmallIntensity(config.getDouble("cheekSmall"));
-        beauty.setCheekShortIntensity(config.getDouble("cheekShort"));
-        beauty.setCheekBonesIntensity(config.getDouble("intensityCheekbones"));
-        beauty.setLowerJawIntensity(config.getDouble("intensityLowerJaw"));
-        beauty.setNoseIntensity(config.getDouble("intensityNose"));
-        beauty.setCanthusIntensity(config.getDouble("intensityCanthus"));
-        beauty.setEyeLidIntensity(config.getDouble("intensityEyeLid"));
-        beauty.setSmileIntensity(config.getDouble("intensitySmile"));
-        beauty.setEyeCircleIntensity(config.getDouble("intensityEyeCircle"));
-        beauty.setChinIntensity(config.getDouble("intensityChin"));
-        beauty.setForHeadIntensity(config.getDouble("intensityForehead"));
-        beauty.setLipThickIntensity(config.getDouble("intensityLipThick"));
-        beauty.setEyeHeightIntensity(config.getDouble("intensityEyeHeight"));
-        beauty.setEyeSpaceIntensity(config.getDouble("intensityEyeSpace"));
-        beauty.setEyeRotateIntensity(config.getDouble("intensityEyeRotate"));
-        beauty.setLongNoseIntensity(config.getDouble("intensityLongNose"));
-        beauty.setPhiltrumIntensity(config.getDouble("intensityPhiltrum"));
-        beauty.setBrowHeightIntensity(config.getDouble("intensityBrowHeight"));
-        beauty.setBrowSpaceIntensity(config.getDouble("intensityBrowSpace"));
-        beauty.setBrowThickIntensity(config.getDouble("intensityBrowThick"));
-    }
-
-    @ReactMethod
-    public void setBeautyString(String key,String value) {
-        beauty.setFilterName(value);
-    }
-    @ReactMethod
-    public void setBeautyInt(String key,Integer value) {
-        switch (key){
-            case "blurType":
-                beauty.setBlurType(value);
-                break;
-            case "faceShape":
-                beauty.setFaceShape(value);
-                break;
-            case "heavyBlur":
-                int v = (Integer) value;
-                beauty.setEnableHeavyBlur(v != 0);
-                break;
-        }
-    }
-    @ReactMethod
-    public void setBeauty(String key,Double value) {
-        switch (key){
-            case "filterLevel":
-                beauty.setFilterIntensity(value);
-                break;
-            case "faceShapeLevel":
-                beauty.setFaceShapeIntensity(value);
-                break;
-            case "blurLevel":
-                beauty.setBlurIntensity(value);
-                break;
-            case "colorLevel":
-                beauty.setColorIntensity(value);
-                break;
-            case "redLevel":
-                beauty.setRedIntensity(value);
-                break;
-            case "sharpen":
-                beauty.setSharpenIntensity(value);
-                break;
-            case "faceThreed":
-                beauty.setFaceThreeIntensity(value);
-                break;
-            case "eyeBright":
-                beauty.setEyeBrightIntensity(value);
-                break;
-            case "toothWhiten":
-                beauty.setToothIntensity(value);
-                break;
-            case "cheekThinning":
-                beauty.setCheekThinningIntensity(value);
-                break;
-            case "cheekV":
-                beauty.setCheekVIntensity(value);
-                break;
-            case "cheekLong":
-                beauty.setCheekLongIntensity(value);
-                break;
-            case "cheekCircle":
-                beauty.setCheekCircleIntensity(value);
-                break;
-            case "cheekNarrow":
-                beauty.setCheekNarrowIntensity(value);
-                break;
-            case "cheekSmall":
-                beauty.setCheekSmallIntensity(value);
-                break;
-            case "cheekShort":
-                beauty.setCheekShortIntensity(value);
-                break;
-            case "intensityCheekbones":
-                beauty.setCheekBonesIntensity(value);
-                break;
-            case "intensityLowerJaw":
-                beauty.setLowerJawIntensity(value);
-                break;
-            case "intensityNose":
-                beauty.setNoseIntensity(value);
-                break;
-            case "intensityCanthus":
-                beauty.setCanthusIntensity(value);
-                break;
-            case "intensityEyeLid":
-                beauty.setEyeLidIntensity(value);
-                break;
-            case "intensitySmile":
-                beauty.setSmileIntensity(value);
-                break;
-            case "intensityEyeCircle":
-                beauty.setEyeCircleIntensity(value);
-                break;
-            case "intensityChin":
-                beauty.setChinIntensity(value);
-                break;
-            case "intensityForehead":
-                beauty.setForHeadIntensity(value);
-                break;
-            case "intensityLipThick":
-                beauty.setLipThickIntensity(value);
-                break;
-            case "intensityEyeHeight":
-                beauty.setEyeHeightIntensity(value);
-                break;
-            case "intensityEyeSpace":
-                beauty.setEyeSpaceIntensity(value);
-                break;
-            case "intensityEyeRotate":
-                beauty.setEyeRotateIntensity(value);
-                break;
-            case "intensityLongNose":
-                beauty.setLongNoseIntensity(value);
-                break;
-            case "intensityPhiltrum":
-                beauty.setPhiltrumIntensity(value);
-                break;
-            case "intensityBrowHeight":
-                beauty.setBrowHeightIntensity(value);
-                break;
-            case "intensityBrowSpace":
-                beauty.setBrowSpaceIntensity(value);
-                break;
-            case "intensityBrowThick":
-                beauty.setBrowThickIntensity(value);
-                break;
-        }
-    }
-
     @ReactMethod
     public void getVersion(Promise promise) {
         promise.resolve(ZegoExpressEngine.getVersion());
     }
 
-
-    @Override
-    public void onStart(int channel) {
-        FURenderKit.getInstance().setFaceBeauty(beauty);
-    }
-
-    @Override
-    public void onStop(int channel) {
-        FURenderKit.getInstance().release();
-    }
-
-    @Override
-    public int onProcessImage(int textureID, int width, int height) {
-        FURenderInputData input = new FURenderInputData(width,height);
-        FURenderInputData.FURenderConfig config  = input.getRenderConfig();
-        config.setOutputMatrix(FUTransformMatrixEnum.CCROT180);
-        input.setRenderConfig(config);
-        FURenderInputData.FUTexture texture =  new FURenderInputData.FUTexture(FUInputTextureEnum.FU_ADM_FLAG_COMMON_TEXTURE,textureID);
-        input.setTexture(texture);
-        FURenderOutputData out = FURenderKit.getInstance().renderWithInput(input);
-        if(out.getTexture() != null) return out.getTexture().getTexId();
-        return textureID;
-    }
-
-
-    @ReactMethod
-    public void setLowlightEnhancement(ReadableMap options){
-        int v = options.getInt("value");
-        switch (v){
-            case 0:
-                mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.OFF, ZegoPublishChannel.MAIN);
-                break;
-            case 1:
-                mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.ON, ZegoPublishChannel.MAIN);
-                break;
-            case 2:
-                mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.AUTO,ZegoPublishChannel.MAIN);
-                break;
-        }
-
-    }
-	
     @ReactMethod
     public void createEngineWithProfile(ReadableMap profileParam, Promise promise) {
 
@@ -514,47 +282,27 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
 		reportPluginInfo();
 
         // Fix hot update did not destroy the engine
-        if (ZegoExpressEngine.getEngine() != null) {
+		if (ZegoExpressEngine.getEngine() != null) {
             ZegoExpressEngine.destroyEngine(null);
         }
 
         ZegoExpressEngine.setApiCalledCallback(zegoApiCalledEventHandler);
 
         double appID = profileParam.getDouble("appID");
-        int scenario = profileParam.getInt("scenario");
+		int scenario = profileParam.getInt("scenario");
 
         ZegoEngineProfile profile = new ZegoEngineProfile();
-        profile.appID = (long) appID;
-        profile.scenario = ZegoScenario.getZegoScenario(scenario);
-        profile.application = (Application) this.reactContext.getApplicationContext();
+		profile.appID = (long) appID;
+		profile.scenario = ZegoScenario.getZegoScenario(scenario);
+		profile.application = (Application) this.reactContext.getApplicationContext();
 
-        mSDKEngine = ZegoExpressEngine.createEngine(profile, zegoEventHandler);
-        mSDKEngine.enableHardwareEncoder(true);
-        mSDKEngine.enableHardwareDecoder(true);
-	//光照加强
-	boolean lowlight = profileParam.hasKey("lowlight") && profileParam.getBoolean("lowlight");;
-        if(lowlight) {
-            mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.AUTO, ZegoPublishChannel.MAIN);
-        }
-	//自适应帧率
-        int minFPS = profileParam.hasKey("minFPS") ? profileParam.getInt("minFPS") : 0;
-        int maxFPS = profileParam.hasKey("maxFPS") ? profileParam.getInt("maxFPS") : 0;
-        if(minFPS > 0 && maxFPS > 0) {
-            mSDKEngine.enableCameraAdaptiveFPS(true, minFPS, maxFPS, ZegoPublishChannel.MAIN);
+        if (profileParam.hasKey("appSign")) {
+            profile.appSign = profileParam.getString("appSign");
         }
 
-        ZegoCustomVideoProcessConfig config = new ZegoCustomVideoProcessConfig();
-        config.bufferType = ZegoVideoBufferType.GL_TEXTURE_2D;
-        mSDKEngine.enableCustomVideoProcessing(true,config,ZegoPublishChannel.MAIN);
-
-        ZegoCustomVideoProcessManager.getInstance().setCustomVideoProcessHandler(this);
-        mSDKEngine.setCustomVideoProcessHandler(ZegoCustomVideoProcessManager.getInstance().rtcVideoProcessHandler);
-        mSDKEngine.setVideoMirrorMode(ZegoVideoMirrorMode.NO_MIRROR);
-
-        FURenderer.getInstance().setup(reactContext);
-//        FURenderKit.getInstance().setUseTexAsync(true);
-
+		ZegoExpressEngine.createEngine(profile, zegoEventHandler);
         kIsInited = true;
+
         promise.resolve(null);
 	}
 
@@ -581,7 +329,6 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
     @ReactMethod
     public void destroyEngine(final Promise promise) {
         if(kIsInited) {
-	    FURenderer.getInstance().release(); //释放美颜
             ZegoExpressEngine.destroyEngine(new IZegoDestroyCompletionCallback() {
                 @Override
                 public void onDestroyCompletion() {
@@ -783,50 +530,49 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
     public void startPreview(final ReadableMap view, final int channel, final Promise promise) {
 
         if(view != null) {
-            final String nativeID = view.getString("nativeID");
+            final int viewTag = view.getInt("reactTag");
             UIManagerModule uiMgr = this.reactContext.getNativeModule(UIManagerModule.class);
             uiMgr.addUIBlock(new UIBlock() {
                 @Override
                 public void execute(NativeViewHierarchyManager nativeViewHierarchyManager) {
-//                    View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
-                    View nativeView = ReactFindViewUtil.findView(reactContext.getCurrentActivity().getWindow().getDecorView().getRootView(), nativeID);
+                    View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
                     ZegoCanvas canvas = null;
+                    boolean alphaBlend = view.hasKey("alphaBlend") && view.getBoolean("alphaBlend");
+
                     if(nativeView instanceof ZegoSurfaceView) {
                         ZegoSurfaceView sv = (ZegoSurfaceView)nativeView;
                         canvas = new ZegoCanvas(sv.getView());
+                        if (alphaBlend) {
+                            sv.setPixelFormat(PixelFormat.TRANSLUCENT);
+                            sv.setZOrderOnTop(true);
+                        }
                     } else if(nativeView instanceof TextureView) {
                         canvas = new ZegoCanvas(nativeView);
+                        if (alphaBlend) {
+                            ((TextureView) nativeView).setOpaque(false);
+                        }
                     }
 
                     if (canvas != null) {
                         canvas.viewMode = ZegoViewMode.getZegoViewMode(view.getInt("viewMode"));
                         canvas.backgroundColor = view.getInt("backgroundColor");
-                    }else{
-                        WritableMap returnMap = Arguments.createMap();
-                        returnMap.putInt("errorCode", 2);
-                        promise.resolve(returnMap);
-                        return;
+                        canvas.alphaBlend = alphaBlend;
                     }
 
-                    mSDKEngine.useFrontCamera(true,ZegoPublishChannel.MAIN);
-                    mSDKEngine.startPreview(canvas, ZegoPublishChannel.getZegoPublishChannel(channel));
-//                    mSDKEngine.setLowlightEnhancement(ZegoLowlightEnhancementMode.AUTO,ZegoPublishChannel.MAIN);
-                    WritableMap returnMap = Arguments.createMap();
-                    returnMap.putInt("errorCode", 0);
-                    promise.resolve(returnMap);
+                    ZegoExpressEngine.getEngine().startPreview(canvas, ZegoPublishChannel.getZegoPublishChannel(channel));
+
+                    promise.resolve(null);
                 }
             });
         } else {
             ZegoExpressEngine.getEngine().startPreview(null, ZegoPublishChannel.getZegoPublishChannel(channel));
-            WritableMap returnMap = Arguments.createMap();
-            returnMap.putInt("errorCode", 1);
-            promise.resolve(returnMap);
+            promise.resolve(null);
         }
     }
 
     @ReactMethod
     public void stopPreview(int channel, Promise promise) {
-        mSDKEngine.stopPreview(ZegoPublishChannel.getZegoPublishChannel(channel));
+        ZegoExpressEngine.getEngine().stopPreview(ZegoPublishChannel.getZegoPublishChannel(channel));
 
         promise.resolve(null);
     }
@@ -917,13 +663,13 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
     }
 
     @ReactMethod
-    public void setAudioConfig(ReadableMap config, Promise promise) {
+    public void setAudioConfig(ReadableMap config, int channel, Promise promise) {
         ZegoAudioConfig configObj = new ZegoAudioConfig();
         configObj.bitrate = config.getInt("bitrate");
         configObj.channel = ZegoAudioChannel.getZegoAudioChannel(config.getInt("channel"));
         configObj.codecID = ZegoAudioCodecID.getZegoAudioCodecID(config.getInt("codecID"));
 
-        ZegoExpressEngine.getEngine().setAudioConfig(configObj);
+        ZegoExpressEngine.getEngine().setAudioConfig(configObj, ZegoPublishChannel.getZegoPublishChannel(channel));
 
         promise.resolve(null);
     }
@@ -1040,6 +786,39 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
     }
 
     @ReactMethod
+    public void enableVideoObjectSegmentation(boolean enable, final ReadableMap config, int channel, Promise promise) {
+
+        ZegoObjectSegmentationConfig segmentationConfig = new ZegoObjectSegmentationConfig();
+        if (config != null) {
+            ZegoBackgroundConfig backgroundConfig = new ZegoBackgroundConfig();
+            ReadableMap backgroundConfigMap = config.getMap("backgroundConfig");
+            if (backgroundConfigMap != null) {
+                backgroundConfig.processType = ZegoBackgroundProcessType.getZegoBackgroundProcessType(backgroundConfigMap.getInt("processType"));
+                backgroundConfig.blurLevel = ZegoBackgroundBlurLevel.getZegoBackgroundBlurLevel(backgroundConfigMap.getInt("blurLevel"));
+                backgroundConfig.color = backgroundConfigMap.getInt("color");
+                backgroundConfig.imageURL = backgroundConfigMap.getString("imageURL");
+                backgroundConfig.videoURL = backgroundConfigMap.getString("videoURL");
+
+                segmentationConfig.backgroundConfig = backgroundConfig;
+            }
+
+            segmentationConfig.objectSegmentationType = ZegoObjectSegmentationType.getZegoObjectSegmentationType(config.getInt("objectSegmentationType"));
+        }
+
+        ZegoExpressEngine.getEngine().enableVideoObjectSegmentation(enable, segmentationConfig, ZegoPublishChannel.getZegoPublishChannel(channel));
+
+        promise.resolve(null);
+    }
+
+    @ReactMethod
+    public void enableAlphaChannelVideoEncoder(boolean enable, int alphaLayout, int channel, Promise promise) {
+
+        ZegoExpressEngine.getEngine().enableAlphaChannelVideoEncoder(enable, ZegoAlphaLayoutType.getZegoAlphaLayoutType(alphaLayout), ZegoPublishChannel.getZegoPublishChannel(channel));
+
+        promise.resolve(null);
+    }
+
+    @ReactMethod
     public void startPlayingStream(final String streamID, final ReadableMap view, final ReadableMap config, final Promise promise) {
 
         ZegoPlayerConfig configObj = null;
@@ -1056,9 +835,6 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
                 }
                 configObj.cdnConfig = cdnConfigObj;
             }
-//            if (config.hasKey("videoLayer")) {
-//                configObj.videoLayer = ZegoPlayerVideoLayer.getZegoPlayerVideoLayer(config.getInt("videoLayer"));
-//            }
             if (config.hasKey("roomID")) {
                 configObj.roomID = config.getString("roomID");
             }
@@ -1071,25 +847,35 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         }
 
         if (view != null) {
-            final String nativeID = view.getString("nativeID");
+            final int viewTag = view.getInt("reactTag");
             UIManagerModule uiMgr = this.reactContext.getNativeModule(UIManagerModule.class);
             final ZegoPlayerConfig finalConfigObj = configObj;
             uiMgr.addUIBlock(new UIBlock() {
                 @Override
                 public void execute(NativeViewHierarchyManager nativeViewHierarchyManager) {
-                    View nativeView = ReactFindViewUtil.findView(reactContext.getCurrentActivity().getWindow().getDecorView().getRootView(), nativeID);
-//                    View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
+                    View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
                     ZegoCanvas canvas = null;
+
+                    boolean alphaBlend = view.hasKey("alphaBlend") && view.getBoolean("alphaBlend");
+
                     if(nativeView instanceof ZegoSurfaceView) {
                         ZegoSurfaceView sv = (ZegoSurfaceView)nativeView;
                         canvas = new ZegoCanvas(sv.getView());
+                        if (alphaBlend) {
+                            sv.setPixelFormat(PixelFormat.TRANSLUCENT);
+                            sv.setZOrderOnTop(true);
+                        }
                     } else if(nativeView instanceof TextureView) {
                         canvas = new ZegoCanvas(nativeView);
+                        if (alphaBlend) {
+                            ((TextureView) nativeView).setOpaque(false);
+                        }
                     }
 
                     if (canvas != null) {
                         canvas.viewMode = ZegoViewMode.getZegoViewMode(view.getInt("viewMode"));
                         canvas.backgroundColor = view.getInt("backgroundColor");
+                        canvas.alphaBlend = alphaBlend;
                     }
 
                     ZegoExpressEngine.getEngine().startPlayingStream(streamID, canvas, finalConfigObj);
@@ -1370,6 +1156,31 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
                 promise.resolve(returnMap);
             }
         });
+    }
+
+    @ReactMethod
+    public void startRecordingCapturedData(ReadableMap configMap, int channel, Promise promise) {
+        ZegoDataRecordConfig recordConfig = new ZegoDataRecordConfig();
+        if (configMap != null) {
+            if (configMap.hasKey("filePath")) {
+                recordConfig.filePath = configMap.getString("filePath");
+            }
+            if (configMap.hasKey("recordType")) {
+                int type = configMap.getInt("recordType");
+                recordConfig.recordType = ZegoDataRecordType.getZegoDataRecordType(type);
+            }
+        }
+        ZegoExpressEngine.getEngine().setDataRecordEventHandler(zegoDataRecordEventHandler);
+        ZegoExpressEngine.getEngine().startRecordingCapturedData(recordConfig, ZegoPublishChannel.getZegoPublishChannel(channel));
+
+        promise.resolve(null);
+    }
+
+    @ReactMethod
+    public void stopRecordingCapturedData(int channel, Promise promise) {
+        ZegoExpressEngine.getEngine().stopRecordingCapturedData(ZegoPublishChannel.getZegoPublishChannel(channel));
+
+        promise.resolve(null);
     }
 
     @ReactMethod
@@ -1680,6 +1491,26 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
     }
 
     @ReactMethod
+    public void enableCustomVideoCapture(boolean enable, ReadableMap configMap, int channel, Promise promise) {
+        ZegoCustomVideoCaptureConfig config = new ZegoCustomVideoCaptureConfig();
+        
+        if (configMap != null && configMap.hasKey("bufferType")) {
+            int bufferType = configMap.getInt("bufferType");
+            config.bufferType = ZegoVideoBufferType.getZegoVideoBufferType(bufferType);
+        }
+        if (enable) {
+            ZegoExpressEngine.getEngine().setCustomVideoCaptureHandler(ZegoCustomVideoCaptureManager.getInstance());
+        } else {
+            ZegoExpressEngine.getEngine().setCustomVideoCaptureHandler(null);
+        }
+
+        ZegoPublishChannel publishChannel = ZegoPublishChannel.getZegoPublishChannel(channel);
+        ZegoExpressEngine.getEngine().enableCustomVideoCapture(enable, config, publishChannel);
+
+        promise.resolve(null);
+    }
+
+    @ReactMethod
     public void enableCustomVideoProcessing(boolean enable, ReadableMap configMap, int channel, Promise promise) {
         ZegoCustomVideoProcessConfig videoProcessConfig = new ZegoCustomVideoProcessConfig();
         videoProcessConfig.bufferType = ZegoVideoBufferType.GL_TEXTURE_2D;
@@ -1702,7 +1533,25 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
 
     @ReactMethod
     public void startScreenCapture(ReadableMap config, Promise promise) {
-        ZegoExpressEngine.getEngine().startScreenCapture();
+        ZegoScreenCaptureConfig screenCaptureConfig = new ZegoScreenCaptureConfig();
+        if (config != null) {
+            if (config.hasKey("captureVideo")) {
+                screenCaptureConfig.captureVideo = config.getBoolean("captureVideo");
+            }
+            if (config.hasKey("captureAudio")) {
+                screenCaptureConfig.captureAudio = config.getBoolean("captureAudio");
+            }
+            if (config.hasKey("audioParam")) {
+                ZegoAudioFrameParam audioFrameParam = new ZegoAudioFrameParam();
+                ReadableMap paramMap = config.getMap("audioParam");
+                if (paramMap != null) {
+                    audioFrameParam.channel = ZegoAudioChannel.getZegoAudioChannel(paramMap.getInt("channel"));
+                    audioFrameParam.sampleRate = ZegoAudioSampleRate.getZegoAudioSampleRate(paramMap.getInt("sampleRate"));
+                }
+                screenCaptureConfig.audioParam = audioFrameParam;
+            }
+        }
+        ZegoExpressEngine.getEngine().startScreenCapture(screenCaptureConfig);
 
         promise.resolve(null);
     }
@@ -1784,6 +1633,14 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
                     WritableMap args = getMediaPlayerCallbackArgs(mediaPlayer.getIndex(), millisecond);
                     sendEvent("mediaPlayerPlayingProgress", args);
                 }
+
+                @Override
+                public void onMediaPlayerRenderingProgress(ZegoMediaPlayer mediaPlayer, long millisecond) {
+                    super.onMediaPlayerRenderingProgress(mediaPlayer, millisecond);
+
+                    WritableMap args = getMediaPlayerCallbackArgs(mediaPlayer.getIndex(), millisecond);
+                    sendEvent("mediaPlayerRenderingProgress", args);
+                }
             });
             this.mediaPlayerMap.put(index, mediaPlayer);
 
@@ -1816,16 +1673,26 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
             public void execute(NativeViewHierarchyManager nativeViewHierarchyManager) {
                 View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
                 ZegoCanvas canvas = null;
+                boolean alphaBlend = view.hasKey("alphaBlend") && view.getBoolean("alphaBlend");
+
                 if(nativeView instanceof ZegoSurfaceView) {
                     ZegoSurfaceView sv = (ZegoSurfaceView)nativeView;
                     canvas = new ZegoCanvas(sv.getView());
+                    if (alphaBlend) {
+                        sv.setPixelFormat(PixelFormat.TRANSLUCENT);
+                        sv.setZOrderOnTop(true);
+                    }
                 } else if(nativeView instanceof TextureView) {
                     canvas = new ZegoCanvas(nativeView);
+                    if (alphaBlend) {
+                        ((TextureView) nativeView).setOpaque(false);
+                    }
                 }
 
                 if (canvas != null) {
                     canvas.viewMode = ZegoViewMode.getZegoViewMode(view.getInt("viewMode"));
                     canvas.backgroundColor = view.getInt("backgroundColor");
+                    canvas.alphaBlend = alphaBlend;
                 }
 
                 ZegoMediaPlayer mediaPlayer = mediaPlayerMap.get(index);
@@ -1843,6 +1710,40 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         ZegoMediaPlayer mediaPlayer = this.mediaPlayerMap.get(index);
         if(mediaPlayer != null) {
             mediaPlayer.loadResource(path, new IZegoMediaPlayerLoadResourceCallback() {
+                @Override
+                public void onLoadResourceCallback(int errorCode) {
+                    WritableMap map = Arguments.createMap();
+                    map.putInt("errorCode", errorCode);
+                    promise.resolve(map);
+                }
+            });
+        }
+    }
+
+    @ReactMethod
+    public void mediaPlayerLoadResourceWithConfig(int index, ReadableMap configMap, final Promise promise) {
+
+		ZegoMediaPlayerResource resource = new ZegoMediaPlayerResource();
+		if (configMap != null) {
+			resource.resourceID = configMap.getString("resourceID");
+			resource.filePath = configMap.getString("filePath");
+			resource.loadType = ZegoMultimediaLoadType.getZegoMultimediaLoadType(configMap.getInt("loadType"));
+			resource.alphaLayout = ZegoAlphaLayoutType.getZegoAlphaLayoutType(configMap.getInt("alphaLayout"));
+			resource.startPosition = (long)configMap.getDouble("startPosition");
+            ReadableArray dataArray = configMap.getArray("memory");
+            if (dataArray != null) {
+                byte[] bytes = new byte[dataArray.size()];
+                for (int i = 0; i < dataArray.size(); i++) {
+                    bytes[i] = (byte) dataArray.getInt(i);
+                }
+                resource.memory = ByteBuffer.wrap(bytes);
+				resource.memoryLength = configMap.getInt("memoryLength");
+			}
+		}
+
+        ZegoMediaPlayer mediaPlayer = this.mediaPlayerMap.get(index);
+        if(mediaPlayer != null) {
+            mediaPlayer.loadResourceWithConfig(resource, new IZegoMediaPlayerLoadResourceCallback() {
                 @Override
                 public void onLoadResourceCallback(int errorCode) {
                     WritableMap map = Arguments.createMap();
@@ -2057,6 +1958,16 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         ZegoMediaPlayer mediaPlayer = this.mediaPlayerMap.get(index);
         if(mediaPlayer != null) {
             promise.resolve(mediaPlayer.getCurrentState().value());
+        } else {
+            promise.resolve(0);
+        }
+    }
+
+    @ReactMethod
+    public void mediaPlayerGetCurrentRenderingProgress(int index, Promise promise) {
+        ZegoMediaPlayer mediaPlayer = this.mediaPlayerMap.get(index);
+        if(mediaPlayer != null) {
+            promise.resolve(mediaPlayer.getCurrentProgress());
         } else {
             promise.resolve(0);
         }
@@ -2492,6 +2403,14 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
         }
 
         @Override
+        public void onVideoObjectSegmentationStateChanged(ZegoObjectSegmentationState state, ZegoPublishChannel channel, int errorCode) {
+            super.onVideoObjectSegmentationStateChanged(state, channel, errorCode);
+
+            WritableMap args = getCallbackArgs(state.value(), channel.value(), errorCode);
+            sendEvent("videoObjectSegmentationStateChanged", args);
+        }
+
+        @Override
         public void onPlayerStateUpdate(String streamID, ZegoPlayerState state, int errorCode, JSONObject extendedData) {
             super.onPlayerStateUpdate(streamID, state, errorCode, extendedData);
 
@@ -2549,6 +2468,19 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
 
             WritableMap args = getCallbackArgs(streamID);
             sendEvent("playerRecvVideoFirstFrame", args);
+        }
+
+        @Override
+        public void onPlayerRecvSEI(String streamID, byte[] data) {
+            super.onPlayerRecvSEI(streamID, data);
+
+            WritableArray byteArray = Arguments.createArray();
+            for (int i = 0; i < data.length; i++) {
+                byteArray.pushInt(data[i]);
+            }
+
+            WritableMap args = getCallbackArgs(streamID, byteArray);
+            sendEvent("playerRecvSEI", args);
         }
 
         @Override
@@ -2735,6 +2667,50 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule imple
 
             WritableMap args = getCallbackArgs(userID, upstreamQuality.value(), downstreamQuality.value());
             sendEvent("networkQuality", args);
+        }
+
+        @Override
+        public void onScreenCaptureStart() {
+            super.onScreenCaptureStart();
+            WritableMap args = getCallbackArgs();
+            sendEvent("mobileScreenCaptureStart", args);
+        }
+
+        @Override
+        public void onScreenCaptureExceptionOccurred(ZegoScreenCaptureExceptionType exceptionType) {
+            super.onScreenCaptureExceptionOccurred(exceptionType);
+
+            WritableMap args = getCallbackArgs(exceptionType.value());
+            sendEvent("mobileScreenCaptureExceptionOccurred", args);
+        }
+    };
+
+    private IZegoDataRecordEventHandler zegoDataRecordEventHandler = new IZegoDataRecordEventHandler() {
+        @Override
+        public void onCapturedDataRecordStateUpdate(ZegoDataRecordState state, int errorCode, ZegoDataRecordConfig config, ZegoPublishChannel channel) {
+            super.onCapturedDataRecordStateUpdate(state, errorCode, config, channel);
+
+            WritableMap configMap = Arguments.createMap();
+            configMap.putString("filePath", config.filePath);
+            configMap.putInt("recordType", config.recordType.value());
+
+            WritableMap args = getCallbackArgs(state.value(), errorCode, configMap, channel.value());
+            sendEvent("capturedDataRecordStateUpdate", args);
+        }
+
+        @Override
+        public void onCapturedDataRecordProgressUpdate(ZegoDataRecordProgress progress, ZegoDataRecordConfig config, ZegoPublishChannel channel) {
+            super.onCapturedDataRecordProgressUpdate(progress, config, channel);
+            WritableMap configMap = Arguments.createMap();
+            configMap.putString("filePath", config.filePath);
+            configMap.putInt("recordType", config.recordType.value());
+
+            WritableMap progressMap = Arguments.createMap();
+            progressMap.putDouble("currentFileSize", progress.currentFileSize);
+            progressMap.putDouble("duration", progress.duration);
+
+            WritableMap args = getCallbackArgs(progressMap, configMap, channel.value());
+            sendEvent("capturedDataRecordProgressUpdate", args);
         }
     };
 

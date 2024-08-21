@@ -9,9 +9,9 @@ export declare enum ZegoScenario {
     Live = 2,
     /** Available since: 3.0.0. Description: The default (generic) scenario. If none of the following scenarios conform to your actual application scenario, this default scenario can be used. */
     Default = 3,
-    /** Available since: 3.0.0. Description: Standard video call (or voice call) scenario, it is suitable for one-to-one video or voice call scenarios. */
+    /** Available since: 3.0.0. Description: Standard video call scenario, it is suitable for one-to-one video call scenarios. */
     StandardVideoCall = 4,
-    /** Available since: 3.0.0. Description: High quality video call (or voice call) scenario, it is similar to the standard video call scenario, but this scenario uses a higher video frame rate, bit rate, and resolution (540p) by default, which is suitable for video call scenario with high image quality requirements. */
+    /** Available since: 3.0.0. Description: High quality video call scenario, it is similar to the standard video call scenario, but this scenario uses a higher video frame rate, bit rate, and resolution (540p) by default, which is suitable for video call scenario with high image quality requirements. */
     HighQualityVideoCall = 5,
     /** Available since: 3.0.0. Description: Standard chatroom scenario, suitable for multi-person pure voice calls (low data usage). Note: On the ExpressVideo SDK, the camera is not enabled by default in this scenario. */
     StandardChatroom = 6,
@@ -20,7 +20,9 @@ export declare enum ZegoScenario {
     /** Available since: 3.0.0. Description: Live broadcast scenario, it is suitable for one-to-many live broadcast scenarios such as shows, games, e-commerce, and large educational classes. The audio and video quality, fluency, and compatibility have been optimized. Note: Even in live broadcast scenarios, the SDK has no business "roles" (such as anchors and viewers), and all users in the room can publish and play streams. */
     Broadcast = 8,
     /** Available since: 3.0.0. Description: Karaoke (KTV) scenario, it is suitable for real-time chorus and online karaoke scenarios, and has optimized delay, sound quality, ear return, echo cancellation, etc., and also ensures accurate alignment and ultra-low delay when multiple people chorus. */
-    Karaoke = 9
+    Karaoke = 9,
+    /** Available since: 3.3.0. Description: Standard voice call scenario, it is suitable for one-to-one video or voice call scenarios. Note: On the ExpressVideo SDK, the camera is not enabled by default in this scenario. */
+    StandardVoiceCall = 10
 }
 /** Room mode. */
 export declare enum ZegoRoomMode {
@@ -155,7 +157,23 @@ export declare enum ZegoVoiceChangerPreset {
     /** Loud clear effect */
     LoudClear = 22,
     /** Minions effect */
-    Minions = 23
+    Minions = 23,
+    /** Sunshine effect, only support iOS */
+    Sunshine = 24,
+    /** Gentle effect, only support iOS */
+    Gentle = 25,
+    /** Sweet effect, only support iOS */
+    Sweet = 26,
+    /** Sweet male effect, only support iOS */
+    SweetMale = 27,
+    /** Sweet female effect, only support iOS */
+    SweetFemale = 28,
+    /** Bright effect, only support iOS */
+    Bright = 29,
+    /** Autobot effect */
+    Autobot = 30,
+    /** Out of power effect */
+    OutOfPower = 31
 }
 /** Reverberation preset value. */
 export declare enum ZegoReverbPreset {
@@ -182,7 +200,13 @@ export declare enum ZegoReverbPreset {
     /** Vocal concert reverb effect */
     VocalConcert = 10,
     /** Gramophone reverb effect */
-    GramoPhone = 11
+    GramoPhone = 11,
+    /** Enhanced KTV reverb effect. Provide KTV effect with more concentrated voice and better brightness. Compared with the original KTV reverb effect, the reverberation time is shortened and the dry-wet ratio is increased. */
+    EnhancedKTV = 12,
+    /** Enhanced Rock reverb effect */
+    EnhancedRock = 13,
+    /** Enhanced misty reverb effect */
+    EnhancedMisty = 14
 }
 /** Mode of Electronic Effects. */
 export declare enum ZegoElectronicEffectsMode {
@@ -259,6 +283,8 @@ export declare enum ZegoVideoCodecID {
     Vp8 = 2,
     /** H.265 */
     H265 = 3,
+    /** Dualstream Scalable Video Coding */
+    H264DualStream = 4,
     /** Unknown Video Coding */
     Unknown = 100
 }
@@ -300,7 +326,22 @@ export declare enum ZegoANSMode {
     /** Aggressive ANS. It may significantly impair the sound quality, but it has a good noise reduction effect. */
     Aggressive = 2,
     /** AI mode ANS. It will cause great damage to music, so it can not be used for noise suppression of sound sources that need to collect background sound. Please contact ZEGO technical support before use. */
-    AI = 3
+    AI = 3,
+    /** Balanced AI mode ANS. It will cause great damage to music, so it can not be used for noise suppression of sound sources that need to collect background sound. Please contact ZEGO technical support before use. */
+    AIBalanced = 4,
+    /** Low latency AI mode ANS. It will cause great damage to music, so it can not be used for noise suppression of sound sources that need to collect background sound. Please contact ZEGO technical support before use. */
+    AILowLatency = 5
+}
+/** Traffic control property (bitmask enumeration). */
+export declare enum ZegoTrafficControlProperty {
+    /** Basic (Adaptive (reduce) video bitrate) */
+    Basic = 0,
+    /** Adaptive (reduce) video FPS */
+    AdaptiveFPS = 1,
+    /** Adaptive (reduce) video resolution */
+    AdaptiveResolution = 2,
+    /** Adaptive (reduce) audio bitrate */
+    AdaptiveAudioBitrate = 4
 }
 /** Video transmission mode when current bitrate is lower than the set minimum bitrate. */
 export declare enum ZegoTrafficControlMinVideoBitrateMode {
@@ -339,8 +380,26 @@ export declare enum ZegoStreamResourceMode {
     OnlyL3 = 2,
     /** Playing stream only from RTC. */
     OnlyRTC = 3,
-    /** CDN Plus mode. The SDK will automatically select the streaming resource according to the network condition. */
+    /** [Deprecated] CDN Plus mode. The SDK will automatically select the streaming resource according to the network condition. */
     CDNPlus = 4
+}
+/** Stream Switch Resource Mode */
+export declare enum ZegoStreamResourceSwitchMode {
+    /** Default mode. The SDK will automatically select the streaming resource according to the parameters set by the player config and the ready-made background configuration. */
+    Default = 0,
+    /** Auto switch to RTC resource when publishing. */
+    SwitchToRTC = 1,
+    /** Keep using original resource when publishing, not switch to RTC resource. */
+    KeepOriginal = 2
+}
+/** Stream Resource Type */
+export declare enum ZegoStreamResourceType {
+    /** Default mode. The SDK will automatically select the streaming resource according to the parameters set by the player config and the ready-made background configuration. */
+    Default = 0,
+    /** CDN resource. */
+    CDN = 1,
+    /** L3 resource. */
+    L3 = 2
 }
 /** Update type. */
 export declare enum ZegoUpdateType {
@@ -394,7 +453,9 @@ export declare enum ZegoDeviceType {
     /** Speaker device. */
     Speaker = 3,
     /** Audio device. (Other audio device that cannot be accurately classified into microphones or speakers.) */
-    AudioDevice = 4
+    AudioDevice = 4,
+    /** Audio Session. */
+    AudioSession = 5
 }
 /** The exception type for the device. */
 export declare enum ZegoDeviceExceptionType {
@@ -421,7 +482,11 @@ export declare enum ZegoDeviceExceptionType {
     /** The device captured sound level is too low (Windows platform only). */
     SoundLevelTooLow = 10,
     /** The device is being occupied, and maybe cause by iPad magnetic case (Apple platform only). */
-    MagneticCase = 11
+    MagneticCase = 11,
+    /** Audio session deactive (Apple platform only). */
+    AudioSessionDeactive = 12,
+    /** Audio session category change (Apple platform only). */
+    AudioSessionCategoryChange = 13
 }
 /** Remote device status. */
 export declare enum ZegoRemoteDeviceState {
@@ -443,9 +508,9 @@ export declare enum ZegoRemoteDeviceState {
     RebootRequired = 7,
     /** System media services stop, such as under the iOS platform, when the system detects that the current pressure is huge (such as playing a lot of animation), it is possible to disable all media related services. */
     SystemMediaServicesLost = 8,
-    /** The remote user calls [enableCamera] or [muteMicrophone] to disable the camera or microphone. */
+    /** The remote user calls [enableCamera] or [enableAudioCaptureDevice] to disable the camera or microphone. */
     Disable = 9,
-    /** The remote user actively calls [mutePublishStreamAudio] or [mutePublishStreamVideo] to stop publish the audio or video stream. */
+    /** The remote user actively calls [muteMicrophone] or [mutePublishStreamAudio] or [mutePublishStreamVideo] to stop publish the audio or video stream. */
     Mute = 10,
     /** The device is interrupted, such as a phone call interruption, etc. */
     Interruption = 11,
@@ -479,7 +544,7 @@ export declare enum ZegoMixerInputContentType {
     Audio = 0,
     /** Mix stream for both audio and video */
     Video = 1,
-    /** Mix stream for video only */
+    /** Mix stream for video only. On web platforms, this property does not take effect */
     VideoOnly = 2
 }
 /** Video frame buffer type. */
@@ -497,7 +562,13 @@ export declare enum ZegoVideoBufferType {
     /** Surface Texture type video frame */
     SurfaceTexture = 5,
     /** GL_TEXTURE_EXTERNAL_OES type video frame */
-    GLTextureExternalOES = 6
+    GLTextureExternalOES = 6,
+    /** Texture 2D and raw data type video frame */
+    GLTexture2DAndRawData = 7,
+    /** D3D Texture2D type video frame */
+    D3DTexture2D = 8,
+    /** CVPixelBuffer type nv12 format video frame. Only for custom video processing */
+    NV12CVPixelBuffer = 9
 }
 /** Audio Config Preset. */
 export declare enum ZegoAudioConfigPreset {
@@ -541,22 +612,61 @@ export declare enum ZegoAudioEffectPlayState {
     /** End of play */
     PlayEnded = 3
 }
+/** audio sample rate. */
+export declare enum ZegoAudioSampleRate {
+    /** Unknown */
+    Unknown = 0,
+    /** 8K */
+    SampleRate8K = 8000,
+    /** 16K */
+    SampleRate16K = 16000,
+    /** 22.05K */
+    SampleRate22K = 22050,
+    /** 24K */
+    SampleRate24K = 24000,
+    /** 32K */
+    SampleRate32K = 32000,
+    /** 44.1K */
+    SampleRate44K = 44100,
+    /** 48K */
+    SampleRate48K = 48000
+}
 /** Audio capture source type. */
 export declare enum ZegoAudioSourceType {
-    /** Default audio capture source (the main channel uses custom audio capture by default; the aux channel uses the same sound as main channel by default) */
+    /** Default audio capture source (the main channel uses custom audio capture by default; the aux channel uses the same sound as main channel by default). */
     Default = 0,
-    /** Use custom audio capture, refer to [enableCustomAudioIO] or [setAudioSource] */
+    /** Use custom audio capture, refer to [enableCustomAudioIO] or [setAudioSource]. */
     Custom = 1,
-    /** Use media player as audio source, only support aux channel */
+    /** Use media player as audio source, only support aux channel. */
     MediaPlayer = 2,
-    /** No audio source. This audio source type can only be used in [setAudioSource] interface, has no effect when used in [enableCustomAudioIO] interface */
+    /** No audio source. This audio source type can only be used in [setAudioSource] interface, has no effect when used in [enableCustomAudioIO] interface. */
     None = 3,
-    /** Using microphone as audio source. This audio source type can only be used in [setAudioSource] interface, has no effect when used in [enableCustomAudioIO] interface */
+    /** Using microphone as audio source. This audio source type can only be used in [setAudioSource] interface, has no effect when used in [enableCustomAudioIO] interface. */
     Microphone = 4,
-    /** Using main channel as audio source. Ineffective when used in main channel. This audio source type can only be used in [setAudioSource] interface, has no effect when used in [enableCustomAudioIO] interface */
+    /** Using main channel as audio source. Ineffective when used in main channel. This audio source type can only be used in [setAudioSource] interface, has no effect when used in [enableCustomAudioIO] interface. */
     MainPublishChannel = 5,
-    /** Using screen capture as audio source. Typically used in mobile screen sharing scenarios. This audio source type can only be used in [setAudioSource] interface, has no effect when used in [enableCustomAudioIO] interface */
+    /** Using screen capture as audio source. Typically used in mobile screen sharing scenarios. This audio source type can only be used in [setAudioSource] interface, has no effect when used in [enableCustomAudioIO] interface. */
     ScreenCapture = 6
+}
+/** Record type. */
+export declare enum ZegoDataRecordType {
+    /** This field indicates that the Express-Audio SDK records audio by default, and the Express-Video SDK records audio and video by default. When recording files in .aac format, audio is also recorded by default. */
+    Default = 0,
+    /** only record audio */
+    OnlyAudio = 1,
+    /** only record video, Audio SDK and recording .aac format files are invalid. */
+    OnlyVideo = 2,
+    /** record audio and video. Express-Audio SDK and .aac format files are recorded only audio. */
+    AudioAndVideo = 3
+}
+/** Record state. */
+export declare enum ZegoDataRecordState {
+    /** Unrecorded state, which is the state when a recording error occurs or before recording starts. */
+    NoRecord = 0,
+    /** Recording in progress, in this state after successfully call [startRecordingCapturedData] function */
+    Recording = 1,
+    /** Record successs */
+    Success = 2
 }
 /** network speed test type */
 export declare enum ZegoNetworkSpeedTestType {
@@ -600,7 +710,7 @@ export declare enum ZegoStreamEvent {
 export declare enum ZegoVideoSourceType {
     /** No capture, i.e. no video data. */
     None = 1,
-    /** Video source from camera. */
+    /** The video source comes from the camera (main channel default, and front camera is captured by default). The default is front camera, which can be adjusted to rear via [useFrontCamera]. */
     Camera = 2,
     /** Video source from custom capture. */
     Custom = 3,
@@ -609,7 +719,88 @@ export declare enum ZegoVideoSourceType {
     /** Video source from media player. */
     Player = 5,
     /** Video source from screen capture. */
-    ScreenCapture = 6
+    ScreenCapture = 6,
+    /** Video source from secondary camera, the rear camera when [useFrontCamera] is set to true, otherwise the front camera, only support iOS. */
+    SecondaryCamera = 14
+}
+/** Screen capture source exception type. (only for Android) */
+export declare enum ZegoScreenCaptureExceptionType {
+    /** Unknown exception type. */
+    Unknown = 0,
+    /** The video capture system version does not support it, and Android only supports 5.0 and above. */
+    VideoNotSupported = 1,
+    /** The capture target fails, such as the monitor is unplugged and the window is closed. */
+    AudioNotSupported = 2,
+    /** Audio recording object creation failed. Possible reasons: 1. The audio recording permission is not enabled; 2. The allocated memory for audio recording is insufficient; 3. The creation of AudioRecord fails. */
+    AudioCreateFailed = 3,
+    /** MediaProjection request for dynamic permissions was denied. */
+    MediaProjectionPermissionDenied = 4,
+    /** Capture is not started. Need to start capturing with [startScreenCapture] first. */
+    NotStartCapture = 5,
+    /** Screen capture has already started, repeated calls failed. You need to stop the capture with [stopScreenCapture] first. */
+    AlreadyStarted = 6,
+    /** Failed to start the foreground service. */
+    ForegroundServiceFailed = 7,
+    /** Before starting screen capture, you need to call [setVideoSource], [setAudioSource] to specify the video and audio source `ScreenCapture`. */
+    SourceNotSpecified = 8,
+    /** System error exception. For example, low memory, etc. */
+    SystemError = 9
+}
+/** Multimedia load type. */
+export declare enum ZegoMultimediaLoadType {
+    /** Load by file path. */
+    FilePath = 0,
+    /** Load by memory. */
+    Memory = 1,
+    /** Load by copyrighted music resource ID. */
+    ResourceID = 2
+}
+/** Alpha channel data layout. */
+export declare enum ZegoAlphaLayoutType {
+    /** There is no alpha data. */
+    None = 0,
+    /** Alpha channel data is to the left of RGB/YUV data. */
+    Left = 1,
+    /** Alpha channel data is to the right of RGB/YUV data. */
+    Right = 2,
+    /** Alpha channel data is to the bottom of RGB/YUV data. */
+    Bottom = 3
+}
+/** Object segmentation type. */
+export declare enum ZegoObjectSegmentationType {
+    /** Any background object segmentation. */
+    AnyBackground = 0,
+    /** Green screen background object segmentation. */
+    GreenScreenBackground = 1
+}
+/** Object segmentation state. */
+export declare enum ZegoObjectSegmentationState {
+    /** Object segmentation turned off. */
+    Off = 0,
+    /** Object segmentation turned on. */
+    On = 1
+}
+/** Video background process type. */
+export declare enum ZegoBackgroundProcessType {
+    /** Background is transparent. */
+    Transparent = 0,
+    /** Fill the background with a solid color. */
+    Color = 1,
+    /** Blur background. */
+    Blur = 2,
+    /** The background is the specified image. */
+    Image = 3,
+    /** The background is the specified video. */
+    Video = 4
+}
+/** Background blur level. */
+export declare enum ZegoBackgroundBlurLevel {
+    /** Background blur level low. */
+    Low = 0,
+    /** Background blur level medium. */
+    Medium = 1,
+    /** Background blur level high. */
+    High = 2
 }
 /**
  * Log config.
@@ -623,7 +814,21 @@ export declare class ZegoLogConfig {
     logPath: string;
     /** Maximum log file size(Bytes). Description: Used to customize the maximum log file size. Use cases: This configuration is required when you need to customize the upper limit of the log file size. Required: False. Default value: 5MB (5 * 1024 * 1024 Bytes). Value range: Minimum 1MB (1 * 1024 * 1024 Bytes), maximum 100M (100 * 1024 * 1024 Bytes), 0 means no need to write logs. Caution: The larger the upper limit of the log file size, the more log information it carries, but the log upload time will be longer. */
     logSize: number;
+    /** Log files count. Default is 3. Value range is [3, 20]. */
+    logCount: number;
     constructor();
+}
+/**
+ * Custom video capture configuration.
+ *
+ * Custom video capture, that is, the developer is responsible for collecting video data and sending the collected video data to SDK for video data encoding and publishing to the ZEGO RTC server. This feature is generally used by developers who use third-party beauty features or record game screen living.
+ * When you need to use the custom video capture function, you need to set an instance of this class as a parameter to the [enableCustomVideoCapture] function.
+ * Because when using custom video capture, SDK will no longer start the camera to capture video data. You need to collect video data from video sources by yourself.
+ */
+export declare class ZegoCustomVideoCaptureConfig {
+    /** Custom video capture video frame data type */
+    bufferType: ZegoVideoBufferType;
+    constructor(bufferType: ZegoVideoBufferType);
 }
 /**
  * Custom video process configuration.
@@ -653,12 +858,7 @@ export declare class ZegoEngineProfile {
     appSign: string;
     /** The room scenario. the SDK will optimize the audio and video configuration for the specified scenario to achieve the best effect in this scenario. After specifying the scenario, you can call other APIs to adjusting the audio and video configuration. Differences between scenarios and how to choose a suitable scenario, please refer to https://docs.zegocloud.com/article/14940 */
     scenario: ZegoScenario;
-    
-    lowlight: boolean;
-    minFPS: number;
-    maxFPS: number;
-    
-    constructor(appID: number, appSign: string, scenario: ZegoScenario,lowlight = false,minFPS = 0, maxFPS = 0);
+    constructor(appID: number, appSign: string, scenario: ZegoScenario);
 }
 /**
  * Advanced engine configuration.
@@ -702,7 +902,7 @@ export declare class ZegoVideoConfig {
     encodeHeight: number;
     /** Frame rate, control the frame rate of the camera and the frame rate of the encoder. Only the camera is not started, the setting is effective. Publishing stream set to 60 fps, playing stream to take effect need contact technical support */
     fps: number;
-    /** Bit rate in kbps. The settings before and after publishing stream can be effective */
+    /** Bit rate in kbps. The settings before and after publishing stream can be effective. The SDK will automatically set the bit rate suitable for the scenario selected by the developer. If the bit rate manually set by the developer exceeds the reasonable range, the SDK will automatically process the bit rate according to the reasonable range. If you need to configure a high bit rate due to business needs, please contact ZEGO Business. */
     bitrate: number;
     /** The codec id to be used, the default value is [default]. Settings only take effect before publishing stream */
     codecID: ZegoVideoCodecID;
@@ -719,7 +919,7 @@ export declare class ZegoVideoConfig {
  * Developer can use the built-in presets of the SDK to change the parameters of the voice changer.
  */
 export declare class ZegoVoiceChangerParam {
-    /** Pitch parameter, value range [-12.0, 12.0], the larger the value, the sharper the sound, set it to 0.0 to turn off. Note the tone-shifting sound effect is only effective for the sound played by the media player, and does not change the tone collected by the microphone. Note that on v2.18.0 and older version, the value range is [-8.0, 8.0]. */
+    /** Pitch parameter, value range [-12.0, 12.0], the larger the value, the sharper the sound, set it to 0.0 to turn off. Note that on v2.18.0 and older version, the value range is [-8.0, 8.0]. */
     pitch: number;
     constructor(pitch: number);
 }
@@ -775,7 +975,7 @@ export declare class ZegoReverbEchoParam {
  * It is strongly recommended that userID corresponds to the user ID of the business APP, that is, a userID and a real user are fixed and unique, and should not be passed to the SDK in a random userID. Because the unique and fixed userID allows ZEGO technicians to quickly locate online problems.
  */
 export declare class ZegoUser {
-    /** User ID, a utf8 string with a maximum length of 64 bytes or less.Privacy reminder: Please do not fill in sensitive user information in this field, including but not limited to mobile phone number, ID number, passport number, real name, etc.Caution: Only support numbers, English characters and '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '.', '<', '>', '/', '\'.Do not use '%' if you need to communicate with the Web SDK. */
+    /** User ID, a utf8 string with a maximum length of 64 bytes or less.Privacy reminder: Please do not fill in sensitive user information in this field, including but not limited to mobile phone number, ID number, passport number, real name, etc.Caution: Only support numbers, English characters and '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '.', '<', '>', '\'. Do not use '%' if you need to communicate with the Web SDK. */
     userID: string;
     /** User Name, a utf8 string with a maximum length of 256 bytes or less.Please do not fill in sensitive user information in this field, including but not limited to mobile phone number, ID number, passport number, real name, etc. */
     userName: string;
@@ -789,7 +989,7 @@ export declare class ZegoUser {
 export interface ZegoStream {
     /** User object instance.Please do not fill in sensitive user information in this field, including but not limited to mobile phone number, ID number, passport number, real name, etc. */
     user: ZegoUser;
-    /** Stream ID, a string of up to 256 characters. Caution: You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '-', ' '. */
+    /** Stream ID, a string of up to 256 characters. Caution: You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '-', '_'. */
     streamID: string;
     /** Stream extra info */
     extraInfo: string;
@@ -831,9 +1031,10 @@ export declare class ZegoView {
     viewMode: ZegoViewMode;
     /** Background color, the format is 0xRRGGBB, default is black, which is 0x000000 */
     backgroundColor: number;
+    /** If enable alpha blend render, default is false. */
+    alphaBlend?: boolean;
     /** reactTag is a tag for native and js to identify each component, and each root view must have a unique reactTag. */
-    rootTag: string;
-    nativeID: number;
+    reactTag: number;
     constructor(reactTag: number, viewMode: ZegoViewMode, backgroundColor: number);
 }
 /**
@@ -1055,18 +1256,18 @@ export declare class ZegoMixerVideoConfig {
  * Configure the mix stream input stream ID, type, and the layout
  */
 export declare class ZegoMixerInput {
-    /** Stream ID, a string of up to 256 characters. Caution: You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '-', ' '. */
+    /** Stream ID, a string of up to 256 characters. Caution: You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '-', '_'. */
     streamID: string;
     /** Mix stream content type */
     contentType: ZegoMixerInputContentType;
-    /** Stream layout. When the mixed stream is an audio stream (that is, the ContentType parameter is set to the audio mixed stream type), the layout field is not processed inside the SDK, and there is no need to pay attention to this parameter. */
+    /** Stream layout. When the mixed stream is an audio stream (that is, the ContentType parameter is set to the audio mixed stream type). Developers do not need to assign a value to this field, just use the SDK default. */
     layout: ZegoRect;
     /** If enable soundLevel in mix stream task, an unique soundLevelID is need for every stream */
     soundLevelID: number;
     constructor(streamID: string, contentType: ZegoMixerInputContentType, layout: ZegoRect, soundLevelID: number);
 }
 /**
- * Mixer output object.
+ * Mixer output object, currently, a mixed-stream task only supports a maximum of four video streams with different resolutions.
  *
  * Configure mix stream output target URL or stream ID
  */
@@ -1139,6 +1340,18 @@ export declare class ZegoBarrageMessageInfo {
     constructor(message: string, messageID: string, sendTime: number, fromUser: ZegoUser);
 }
 /**
+ * Parameter object for audio frame.
+ *
+ * Including the sampling rate and channel of the audio frame
+ */
+export declare class ZegoAudioFrameParam {
+    /** Sampling Rate */
+    sampleRate: ZegoAudioSampleRate;
+    /** Audio channel, default is Mono */
+    channel: ZegoAudioChannel;
+    constructor(sampleRate: ZegoAudioSampleRate, channel: ZegoAudioChannel);
+}
+/**
  * Audio configuration.
  *
  * Configure audio bitrate, audio channel, audio encoding for publishing stream
@@ -1154,6 +1367,28 @@ export declare class ZegoAudioConfig {
      * Create a default audio configuration (ZegoAudioConfigPresetStandardQuality, 48 kbps, Mono, ZegoAudioCodecIDDefault)
      */
     constructor(preset?: ZegoAudioConfigPreset);
+}
+/**
+ * Record config.
+ */
+export declare class ZegoDataRecordConfig {
+    /** The path to save the recording file, absolute path, need to include the file name, the file name need to specify the suffix, currently supports .mp4/.flv/.aac format files, if multiple recording for the same path, will overwrite the file with the same name. The maximum length should be less than 1024 bytes. */
+    filePath: string;
+    /** Type of recording media */
+    recordType: ZegoDataRecordType;
+    constructor(filePath: string, recordType: ZegoDataRecordType);
+}
+/**
+ * File recording progress.
+ */
+export declare class ZegoDataRecordProgress {
+    /** Current recording duration in milliseconds */
+    duration: number;
+    /** Current recording file size in byte */
+    currentFileSize: number;
+    /** The quality of current recording file */
+    quality: ZegoPublishStreamQuality;
+    constructor(duration: number, currentFileSize: number, quality: ZegoPublishStreamQuality);
 }
 /**
  * Network speed test config
@@ -1202,13 +1437,74 @@ export declare class ZegoAudioEffectPlayConfig {
     constructor(playCount: number, isPublishOut: boolean);
 }
 /**
- * Zego MediaPlayer.
- *
- * Yon can use ZegoMediaPlayer to play media resource files on the local or remote server, and can mix the sound of the media resource files that are played into the publish stream to achieve the effect of background music.
+ * Screen capture configuration parameters.
  */
+export declare class ZegoScreenCaptureConfig {
+    /** Whether to capture video when screen capture. The default is true. */
+    captureVideo: boolean;
+    /** Whether to capture audio when screen capture. The default is true. */
+    captureAudio: boolean;
+    /** Set Microphone audio volume for ReplayKit. The range is 0 ~ 200. The default is 100. (only for iOS) */
+    microphoneVolume: number;
+    /** Set Application audio volume for ReplayKit. The range is 0 ~ 200. The default is 100. (only for iOS) */
+    applicationVolume: number;
+    /** Set the audio capture parameters during screen capture. (only for Android) */
+    audioParam?: ZegoAudioFrameParam;
+    constructor(captureVideo: boolean, captureAudio: boolean, microphoneVolume: number, applicationVolume: number);
+}
+/**
+ * Multimedia resource for ZEGO media player.
+ *
+ * Used to configure loading parameters when loading multimedia resources.
+ */
+export declare class ZegoMediaPlayerResource {
+    /** Used to specify the loading type of multimedia resources. */
+    loadType: ZegoMultimediaLoadType;
+    /** The progress at which the plaback started. */
+    startPosition?: number;
+    /** If the specified resource has a transparent effect, you need to specify the layout position of the alpha data. */
+    alphaLayout?: ZegoAlphaLayoutType;
+    /** Common resource path.The absolute resource path or the URL of the network resource and cannot be null or "". Android can set this path string with Uri. */
+    filePath?: string;
+    /** binary data memory. */
+    memory?: Uint8Array;
+    /** The resource ID obtained from the copyrighted music module. */
+    resourceID?: string;
+    constructor();
+}
+/**
+ * Background config.
+ *
+ * It is used to configure background when the object segmentation is turned on.
+ */
+export declare class ZegoBackgroundConfig {
+    /** Background process type. */
+    processType: ZegoBackgroundProcessType;
+    /** Background color, the format is 0xRRGGBB, default is black, which is 0x000000 */
+    color: number;
+    /** Background image URL. Support local file absolute path (file://xxx). The format supports png, jpg. */
+    imageURL: string;
+    /** Background video URL. Caution: 1. The video will be played in a loop. 2. Support local file absolute path (file://xxx). 3. The format supports MP4, FLV, MKV, AVI. 4. The maximum resolution should not exceed 4096px, and it is recommended to be within 1920px. 5. The maximum video duration should not exceed 30 seconds, and it is recommended to be within 15 seconds. 6. The maximum video size should not exceed 50MB, and 10MB is recommended. */
+    videoURL: string;
+    /** Background blur level. */
+    blurLevel: ZegoBackgroundBlurLevel;
+    constructor();
+}
+/**
+ * Object segmentation config.
+ *
+ * It is used to configure parameters when the object segmentation is turned on.
+ */
+export declare class ZegoObjectSegmentationConfig {
+    /** The type of object segmentation. */
+    objectSegmentationType: ZegoObjectSegmentationType;
+    /** Background config. */
+    backgroundConfig: ZegoBackgroundConfig;
+    constructor();
+}
 export declare abstract class ZegoMediaPlayer {
     /**
-     * Load media resource.
+     * Load local or network media resource.
      *
      * Available: since 1.3.4
      * Description: Load media resources.
@@ -1216,10 +1512,23 @@ export declare abstract class ZegoMediaPlayer {
      * When to call: It can be called after the engine by [createEngine] has been initialized and the media player has been created by [createMediaPlayer].
      * Related APIs: Resources can be loaded through the [loadResourceWithPosition] or [loadResourceFromMediaData] function.
      *
-     * @param path The absolute resource path or the URL of the network resource and cannot be null or "".
-     * @return Notification of resource loading results
+     * @param path The absolute resource path or the URL of the network resource and cannot be null or "". Android can set this path string with Uri.
+     * @return Callback result of loading media resource.
      */
     abstract loadResource(path: string): Promise<ZegoMediaPlayerLoadResourceResult>;
+    /**
+     * Load local or network media resource with config.
+     *
+     * Available: since 3.3.0
+     * Description: Load media resources.
+     * Use case: Developers can load the absolute path to the local resource or the URL of the network resource incoming.
+     * When to call: Called after the engine [createEngine] has been initialized and the media player [createMediaPlayer] has been created.
+     * Related APIs: Support for loading resources through the [loadResourceWithPosition] or [loadResourceFromMediaData] interface.
+     *
+     * @param resource Multimedia resources that need to be loaded.
+     * @return Callback result of loading media resource.
+     */
+    abstract loadResourceWithConfig(resource: ZegoMediaPlayerResource): Promise<ZegoMediaPlayerLoadResourceResult>;
     /**
      * Start playing.
      *
@@ -1235,7 +1544,7 @@ export declare abstract class ZegoMediaPlayer {
      */
     abstract pause(): Promise<void>;
     /**
-     * resume playing.
+     * Resume playing.
      */
     abstract resume(): Promise<void>;
     /**
@@ -1244,7 +1553,7 @@ export declare abstract class ZegoMediaPlayer {
      * Unit is millisecond
      *
      * @param millisecond Point in time of specified playback progress
-     * @return the result notification of set the specified playback progress
+     * @return The result notification of set the specified playback progress
      */
     abstract seekTo(millisecond: number): Promise<ZegoMediaPlayerSeekToResult>;
     /**
@@ -1262,11 +1571,15 @@ export declare abstract class ZegoMediaPlayer {
      * Restrictions: None.
      * Related APIs: Resources can be loaded through the [loadResource] function.
      *
-     * @param speed The speed of play. The range is 0.5 ~ 2.0. The default is 1.0.
+     * @param speed The speed of play. The default is 1.0.
+     *   Versions 2.12.0 to 3.15.1: The range is 0.5 ~ 4.0.
+     *   Versions 3.16.0 and above: The range is 0.3 ~ 4.0.
      */
     abstract setPlaySpeed(speed: number): Promise<void>;
     /**
-     * Whether to mix the player's sound into the main stream channel being published.
+     * Whether to mix the player's sound into the stream being published.
+     *
+     * This interface will only mix the media player sound into the main channel
      *
      * @param enable Aux audio flag. The default is false.
      */
@@ -1293,7 +1606,7 @@ export declare abstract class ZegoMediaPlayer {
      */
     abstract setVolume(volume: number): Promise<void>;
     /**
-     * Set mediaplayer local play volume.
+     * Set mediaplayer local playback volume.
      *
      * @param volume The range is 0 ~ 200. The default is 60.
      */
@@ -1315,10 +1628,14 @@ export declare abstract class ZegoMediaPlayer {
     abstract setProgressInterval(millisecond: number): Promise<void>;
     /**
      * Gets the current local playback volume of the mediaplayer, the range is 0 ~ 200, with the default value of 60.
+     *
+     * @return current volume
      */
     abstract getPlayVolume(): Promise<number>;
     /**
      * Gets the current publish volume of the mediaplayer, the range is 0 ~ 200, with the default value of 60.
+     *
+     * @return current volume
      */
     abstract getPublishVolume(): Promise<number>;
     /**
@@ -1333,10 +1650,22 @@ export declare abstract class ZegoMediaPlayer {
      * Get current playing progress.
      *
      * You should load resource before invoking this function, otherwise the return value is 0
+     *
+     * @return current progress
      */
     abstract getCurrentProgress(): Promise<number>;
     /**
+     * Get current rendering progress.
+     *
+     * You should load resource before invoking this function, otherwise the return value is 0
+     *
+     * @return current rendering progress
+     */
+    abstract getCurrentRenderingProgress(): Promise<number>;
+    /**
      * Get the number of audio tracks of the playback file.
+     *
+     * @return Number of audio tracks
      */
     abstract getAudioTrackCount(): Promise<number>;
     /**
@@ -1347,10 +1676,18 @@ export declare abstract class ZegoMediaPlayer {
     abstract setAudioTrackIndex(index: number): Promise<void>;
     /**
      * Get the current playback status.
+     *
+     * @return current state
      */
     abstract getCurrentState(): Promise<ZegoMediaPlayerState>;
     /**
      * Get media player index.
+     *
+     * Description: Get media player index.
+     * When to call: It can be called after [createMediaPlayer].
+     * Restrictions: None.
+     *
+     * @return Media player index.
      */
     abstract getIndex(): number;
     /**
@@ -1366,11 +1703,8 @@ export declare abstract class ZegoMediaPlayer {
      * @param event Event type.
      * @param callback Call back.
      */
-    abstract off<MediaPlayerEventType extends keyof ZegoMediaPlayerListener>(event: MediaPlayerEventType, callback?: ZegoMediaPlayerListener[MediaPlayerEventType]): void;
+    abstract off<MediaPlayerEventType extends keyof ZegoMediaPlayerListener>(event: MediaPlayerEventType, callback: undefined | ZegoMediaPlayerListener[MediaPlayerEventType]): void;
 }
-/**
- * Audio effect player.
- */
 export declare abstract class ZegoAudioEffectPlayer {
     /**
      * Start playing audio effect.
@@ -1385,7 +1719,7 @@ export declare abstract class ZegoAudioEffectPlayer {
      * @param path The absolute path of the local resource. <br>Value range: "assets://"、"ipod-library://" and network url are not supported. Set path as null or "" if resource is loaded already using [loadResource].
      * @param config Audio effect playback configuration. <br>Default value: Set null will only be played once, and will not be mixed into the publishing stream.
      */
-    abstract start(audioEffectID: number, path?: string, config?: ZegoAudioEffectPlayConfig): Promise<void>;
+    abstract start(audioEffectID: number, path: undefined | string, config: undefined | ZegoAudioEffectPlayConfig): Promise<void>;
     /**
      * Stop playing audio effect.
      *
@@ -1557,21 +1891,7 @@ export declare abstract class ZegoAudioEffectPlayer {
      * @param event Event type.
      * @param callback Call back.
      */
-    abstract off<AudioEffectPlayerEventType extends keyof ZegoAudioEffectPlayerListener>(event: AudioEffectPlayerEventType, callback?: ZegoAudioEffectPlayerListener[AudioEffectPlayerEventType]): void;
-}
-/**
- * Screen capture configuration parameters.
- */
-export declare class ZegoScreenCaptureConfig {
-    /** Whether to capture video when screen capture. The default is true. */
-    captureVideo: boolean;
-    /** Whether to capture audio when screen capture. The default is true. */
-    captureAudio: boolean;
-    /** Set Microphone audio volume for ReplayKit. The range is 0 ~ 200. The default is 100. */
-    microphoneVolume: number;
-    /** Set Application audio volume for ReplayKit. The range is 0 ~ 200. The default is 100. */
-    applicationVolume: number;
-    constructor(captureVideo: boolean, captureAudio: boolean, microphoneVolume: number, applicationVolume: number);
+    abstract off<AudioEffectPlayerEventType extends keyof ZegoAudioEffectPlayerListener>(event: AudioEffectPlayerEventType, callback: undefined | ZegoAudioEffectPlayerListener[AudioEffectPlayerEventType]): void;
 }
 /**
  * Callback for setting room extra information.

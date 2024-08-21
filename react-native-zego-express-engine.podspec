@@ -16,14 +16,13 @@ Pod::Spec.new do |s|
   # s.license    = { :type => "MIT", :file => "LICENSE" }
   s.authors      = { "zego.im" => "dev@zego.im" }
   s.platforms    = { :ios => "9.0" }
-  s.source       = { :path => '.'}
+  s.source       = { :path => '.' }
 
-  s.source_files = "ios/**/*.{h,m,mm}"
-  s.resource    = 'ios/src/FaceUnity/FaceUnity.bundle'
+  s.source_files = "ios/**/*.{h,c,m,mm,swift}"
   s.requires_arc = true
+
   s.dependency "React"
-  s.dependency 'ZegoExpressEngine', '3.2.0'
-  s.dependency 'FURenderKit'
+  s.dependency 'ZegoExpressEngine', '3.16.1'
   # ...
   # s.dependency "..."
 end

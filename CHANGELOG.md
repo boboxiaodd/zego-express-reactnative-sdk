@@ -1,5 +1,120 @@
 # Change Log
 
+## 3.16.2
+
+### New Features
+
+1. Added screen recording cancellation callback on Android platform
+
+### Bug Fixes
+
+1. Fixed the problem that the camera cannot be opened in certain Android scenes
+2. Fixed the problem that when recording the screen of some Android models, the screen recording permission will not be automatically stopped after the application is killed.
+3. Fixed the issue of iOS crashing when frequent streaming/stopping streaming.
+
+## 3.16.1
+
+1. Add screen capture permission selection notification on Android platform.
+
+## 3.16.0
+
+1. Update native sdk version to 3.16.0
+2. Add namespace support gradle 8.0
+
+## 3.15.1
+
+### New Features
+
+1. Add custom video capture feature.
+
+## 3.14.5
+
+### New Features
+
+1. Support iOS 17.0 version.
+
+Note: Starting with this release, iOS 11.0 and earlier versions are no longer supported.
+
+Starting from 2024-04-29, all apps on the App Store must support iOS 17.0 version. For details, please refer to [Apple Developer Website Official Instructions](https://developer.apple.com/news/upcoming-requirements/?id=04292024a).
+
+### Bug Fixes
+
+1. Fix the issue where Android screen sharing parameters are empty.
+
+## 3.12.5
+
+### Bug Fixes
+
+1. Fix the problem that multiple createEngineWithProfile calls on the iOS platform will result in no callbacks being received.
+
+## 3.12.4
+
+### Bug Fixes
+
+1. Fixed the issue where the UI would occasionally freeze if a network abnormality occurs when initializing the SDK.
+
+2. Fixed the issue where UI freezes may occur in a very low probability if the network is abnormal when switching networks.
+
+## 3.12.3
+
+1. Update native sdk version to 3.12.3
+
+## 3.11.0
+
+### New Features
+
+1. Media player supports playing transparent special effects.
+
+Media player supports the function of playing transparent special effect files through rendering alpha channel.
+
+For related API, please refer to loadResourceWithConfig
+
+## 3.10.3
+
+### Bug Fixes
+
+1. Fixed the problem of false positives in the mobile terminal sleep detection module, affecting room re-login and push-pull stream retry logic.
+
+## 3.10.2
+
+### New Features
+
+1. Add local media recording function.
+
+Developers can record audio and video streams into local files for later playback and other purposes. For details, please refer to Audio and Video Recording.
+
+For related API, please refer to startRecordingCapturedData, stopRecordingCapturedData, capturedDataRecordStateUpdate, capturedDataRecordProgressUpdate
+
+## 3.10.1
+
+### **Bug Fixes
+
+1. Fixed the issue of a black screen appearing after turning on low-light enhancement.
+
+## 3.8.2
+
+### Bug Fixes
+
+1. The setAudioConfig function add channel parameters.
+
+## 3.8.1
+
+1. Update native sdk version to 3.8.1
+
+## 3.7.0.30287
+
+### New Features
+
+1. Added support for background blur and virtual background functions.
+
+Note: The current official website SDK does not include this function. If necessary, please contact ZEGOCLOUD technical support.
+
+In real scene or greenscreen scenes, developers can use this function to blur the user's background, or replace it with a custom picture background.
+
+This function can be used in video conferences, 1v1 audio and video calls and other scenarios to help users better protect personal privacy and improve the fun of calls.
+
+For related API, please refer to enableVideoObjectSegmentation、enableAlphaChannelVideoEncoder、videoObjectSegmentationStateChanged
+
 ## 3.2.0
 
 ### Enhancements

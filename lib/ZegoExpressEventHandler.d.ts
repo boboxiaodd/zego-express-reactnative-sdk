@@ -43,7 +43,7 @@ export interface ZegoEventListener {
      */
     engineStateUpdate: (state: zego.ZegoEngineState) => void;
     /**
-     * The callback triggered when the room connection state changes.
+     * Notification of the room connection state changes.
      *
      * Available since: 1.1.0
      * Description: This callback is triggered when the connection status of the room changes, and the reason for the change is notified.For versions 2.18.0 and above, it is recommended to use the onRoomStateChanged callback instead of the onRoomStateUpdate callback to monitor room state changes.
@@ -62,7 +62,7 @@ export interface ZegoEventListener {
      */
     roomStateUpdate: (roomID: string, state: zego.ZegoRoomState, errorCode: number, extendedData: string) => void;
     /**
-     * The callback triggered when the room connection state changes.
+     * Notification of the room connection state changes, including specific reasons for state change.
      *
      * Available since: 2.18.0
      * Description: This callback is triggered when the connection status of the room changes, and the reason for the change is notified.For versions 2.18.0 and above, it is recommended to use the onRoomStateChanged callback instead of the onRoomStateUpdate callback to monitor room state changes.
@@ -101,7 +101,7 @@ export interface ZegoEventListener {
      * The callback triggered every 30 seconds to report the current number of online users.
      *
      * Available since: 1.7.0
-     * Description: This method will notify the user of the current number of online users in the room..
+     * Description: This method will notify the user of the current number of online users in the room.
      * Use cases: Developers can use this callback to show the number of user online in the current room.
      * When to call /Trigger: After successfully logging in to the room.
      * Restrictions: None.
@@ -115,7 +115,7 @@ export interface ZegoEventListener {
      * The callback triggered when the number of streams published by the other users in the same room increases or decreases.
      *
      * Available since: 1.1.0
-     * Description: When other users in the room start streaming or stop streaming, the streaming list in the room changes, and the developer will be notified through this callback.
+     * Description: When other users in the room start publishing stream or stop publishing stream, the streaming list in the room changes, and the developer will be notified through this callback.
      * Use cases: This callback is used to monitor stream addition or stream deletion notifications of other users in the room. Developers can use this callback to determine whether other users in the same room start or stop publishing stream, so as to achieve active playing stream [startPlayingStream] or take the initiative to stop the playing stream [stopPlayingStream], and use it to change the UI controls at the same time.
      * When to trigger:
      *   1. When the user logs in to the room for the first time, if there are other users publishing streams in the room, the SDK will trigger a callback notification with `updateType` being [ZegoUpdateTypeAdd], and `streamList` is an existing stream list.
@@ -127,7 +127,7 @@ export interface ZegoEventListener {
      * @param roomID Room ID where the user is logged in, a string of up to 128 bytes in length.
      * @param updateType Update type (add/delete).
      * @param streamList Updated stream list.
-     * @param extendedData Extended information with stream updates.
+     * @param extendedData Extended information with stream updates.When receiving a stream deletion notification, the developer can convert the string into a json object to get the stream_delete_reason field, which is an array of stream deletion reasons, and the stream_delete_reason[].code field may have the following values: 1 (the user actively stops publishing stream) ; 2 (user heartbeat timeout); 3 (user repeated login); 4 (user kicked out); 5 (user disconnected); 6 (removed by the server).
      */
     roomStreamUpdate: (roomID: string, updateType: zego.ZegoUpdateType, streamList: zego.ZegoStream[], extendedData: string) => void;
     /**
@@ -204,18 +204,18 @@ export interface ZegoEventListener {
      * The callback triggered when the first audio frame is captured.
      *
      * Available since: 1.1.0
-     * Description: After the [startPublishingStream] function is called successfully, this callback will be called when SDK received the first frame of audio data. Developers can use this callback to determine whether SDK has actually collected audio data. If the callback is not received, the audio capture device is occupied or abnormal.
-     * Trigger: In the case of no startPublishingStream audio and video stream or preview [startPreview], the first startPublishingStream audio and video stream or first preview, that is, when the engine of the audio and video module inside SDK starts, it will collect audio data of the local device and receive this callback.
-     * Related callbacks: After the [startPublishingStream] function is called successfully, determine if the SDK actually collected video data by the callback function [onPublisherCapturedVideoFirstFrame], determine if the SDK has rendered the first frame of video data collected by calling back [onPublisherRenderVideoFirstFrame].
+     * Description: This callback will be received when the SDK starts the microphone to capture the first frame of audio data. If this callback is not received, the audio capture device is occupied or abnormal.
+     * Trigger: When the engine of the audio/video module inside the SDK starts, the SDK will go and collect the audio data from the local device and will receive the callback at that time.
+     * Related callbacks: Determine if the SDK actually collected video data by the callback function [onPublisherCapturedVideoFirstFrame], determine if the SDK has rendered the first frame of video data collected by calling back [onPublisherRenderVideoFirstFrame].
      */
     publisherCapturedAudioFirstFrame: () => void;
     /**
      * The callback triggered when the first video frame is captured.
      *
      * Available since: 1.1.0
-     * Description: After the [startPublishingStream] function is called successfully, this callback will be called when SDK received the first frame of video data. Developers can use this callback to determine whether SDK has actually collected video data. If the callback is not received, the video capture device is occupied or abnormal.
-     * Trigger: In the case of no startPublishingStream video stream or preview, the first startPublishingStream video stream or first preview, that is, when the engine of the audio and video module inside SDK starts, it will collect video data of the local device and receive this callback.
-     * Related callbacks: After the [startPublishingStream] function is called successfully, determine if the SDK actually collected audio data by the callback function [onPublisherCapturedAudioFirstFrame], determine if the SDK has rendered the first frame of video data collected by calling back [onPublisherRenderVideoFirstFrame].
+     * Description: The SDK will receive this callback when the first frame of video data is captured. If this callback is not received, the video capture device is occupied or abnormal.
+     * Trigger: When the SDK's internal audio/video module's engine starts, the SDK will collect video data from the local device and will receive this callback.
+     * Related callbacks: Determine if the SDK actually collected audio data by the callback function [onPublisherCapturedAudioFirstFrame], determine if the SDK has rendered the first frame of video data collected by calling back [onPublisherRenderVideoFirstFrame].
      * Note: This function is only available in ZegoExpressVideo SDK!
      *
      * @param channel Publishing stream channel.If you only publish one audio and video stream, you can ignore this parameter.
@@ -286,6 +286,19 @@ export interface ZegoEventListener {
      */
     publisherStreamEvent: (eventID: zego.ZegoStreamEvent, streamID: string, extraInfo: string) => void;
     /**
+     * The video object segmentation state changed.
+     *
+     * Available since: 3.4.0
+     * Description: The object segmentation state of the stream publishing end changes.
+     * When to trigger: When [enableVideoObjectSegmentation] enables or disables object segmentation, notify the developer whether to enable object segmentation according to the actual state.
+     * Caution: This callback depends on enabling preview or stream publishing.
+     *
+     * @param state Object segmentation state.
+     * @param channel Publishing stream channel.If you only publish one audio and video stream, you can ignore this parameter.
+     * @param errorCode The error code corresponding to the status change of the object segmentation, please refer to the error codes document https://docs.zegocloud.com/en/5548.html for details.
+     */
+    videoObjectSegmentationStateChanged: (state: zego.ZegoObjectSegmentationState, channel: zego.ZegoPublishChannel, errorCode: number) => void;
+    /**
      * The callback triggered when the state of stream playing changes.
      *
      * Available since: 1.1.0
@@ -303,7 +316,7 @@ export interface ZegoEventListener {
      * Callback for current stream playing quality.
      *
      * Available since: 1.1.0
-     * Description: After calling the [startPlayingStream] successfully, this callback will be triggered every 3 seconds. The collection frame rate, bit rate, RTT, packet loss rate and other quality data can be obtained, and the health of the played audio and video streams can be monitored in real time.
+     * Description: After calling the [startPlayingStream] successfully, the callback will be received every 3 seconds default(If you need to change the time, please contact the instant technical support to configure). Through the callback, the collection frame rate, bit rate, RTT, packet loss rate and other quality data can be obtained, and the health of the played audio and video streams can be monitored in real time.
      * Use cases: You can monitor the health of the played audio and video streams in real time according to the quality parameters of the callback function, in order to show the downlink network status on the device UI in real time.
      * Caution: If you does not know how to use the various parameters of the callback function, you can only focus on the level field of the quality parameter, which is a comprehensive value describing the downlink network calculated by SDK based on the quality parameters.
      * Related callbacks: After calling the [startPublishingStream] successfully, a callback [onPublisherQualityUpdate] will be received every 3 seconds. You can monitor the health of publish streams in real time based on quality data such as frame rate, code rate, RTT, packet loss rate, etc.
@@ -378,6 +391,22 @@ export interface ZegoEventListener {
      */
     playerVideoSizeChanged: (streamID: string, width: number, height: number) => void;
     /**
+     * The callback triggered when Supplemental Enhancement Information is received.
+     *
+     * Available since: 1.1.0
+     * Description: After the [startPlayingStream] function is called successfully, when the remote stream sends SEI (such as directly calling [sendSEI], audio mixing with SEI data, and sending custom video capture encoded data with SEI, etc.), the local end will receive this callback.
+     * Trigger: After the [startPlayingStream] function is called successfully, when the remote stream sends SEI, the local end will receive this callback.
+     * Caution:
+     *  1.The customer can directly operate the UI control in this callback function.
+     *  2. Since the video encoder itself generates an SEI with a payload type of 5, or when a video file is used for publishing, such SEI may also exist in the video file. Therefore, if the developer needs to filter out this type of SEI, it can be before [createEngine] Call [ZegoEngineConfig.advancedConfig("unregister_sei_filter", "XXXXX")]. Among them, unregister_sei_filter is the key, and XXXXX is the uuid filter string to be set.
+     *  3. When [mutePlayStreamVideo] or [muteAllPlayStreamVideo] is called to set only the audio stream to be pulled, the SEI will not be received.
+     *
+     * @deprecated It will be deprecated in version 3.4.0 and above. Please use the [onPlayerSyncRecvSEI] function instead.
+     * @param streamID Stream ID.
+     * @param data SEI content.
+     */
+    playerRecvSEI: (streamID: string, data: Uint8Array) => void;
+    /**
      * The callback triggered when the state of relayed streaming of the mixed stream to CDN changes.
      *
      * Available since: 1.2.1
@@ -388,7 +417,7 @@ export interface ZegoEventListener {
      * Related callbacks: Develop can get the sound update notification of each single stream in the mixed stream through [OnMixerSoundLevelUpdate].
      * Related APIs: Develop can start a mixed flow task through [startMixerTask].
      *
-     * @param taskID The mixing task ID. Value range: the length does not exceed 256. Caution: This parameter is in string format and cannot contain URL keywords, such as 'http' and '?' etc., otherwise the push and pull flow will fail. Only supports numbers, English characters and'~','!','@','$','%','^','&','*','(',')','_' ,'+','=','-','`',';',''',',','.','<','>','/','\'.
+     * @param taskID The mixing task ID. Value range: the length does not exceed 256. Caution: This parameter is in string format and cannot contain URL keywords, such as 'http' and '?' etc., otherwise the push and pull flow will fail. Only supports numbers, English characters and'~','!','@','$','%','^','&','*','(',')','_' ,'+','=','-','`',';',''',',','.','<','>','\'.
      * @param infoList List of information that the current CDN is being mixed.
      */
     mixerRelayCDNStateUpdate: (taskID: string, infoList: zego.ZegoStreamRelayCDNInfo[]) => void;
@@ -403,7 +432,7 @@ export interface ZegoEventListener {
      * Related callbacks: [OnMixerRelayCDNStateUpdate] can be used to get update notification of mixing stream repost CDN status.
      * Related APIs: Develop can start a mixed flow task through [startMixerTask].
      *
-     * @param soundLevels The sound key-value pair of each single stream in the mixed stream, the key is the soundLevelID of each single stream, and the value is the sound value of the corresponding single stream. Value range: The value range of value is 0.0 ~ 100.0.
+     * @param soundLevels The sound key-value pair of each single stream in the mixed stream, the key is the soundLevelID of each single stream, and the value is the sound value of the corresponding single stream. Value range: The value range of value is 0.0 ~ 100.0 (This value only represents the range of the sound level value returned by the callback, not the precision.).
      */
     mixerSoundLevelUpdate: (soundLevels: Map<number, number>) => void;
     /**
@@ -417,7 +446,7 @@ export interface ZegoEventListener {
      *   2. This callback is a high-frequency callback, and it is recommended not to do complex logic processing inside the callback.
      * Related APIs: Start sound level monitoring via [startSoundLevelMonitor]. Monitoring remote played audio sound level by callback [onRemoteSoundLevelUpdate]
      *
-     * @param soundLevel Locally captured sound level value, ranging from 0.0 to 100.0.
+     * @param soundLevel Locally captured sound level value, ranging from 0.0 to 100.0 (This value only represents the range of the sound level value returned by the callback, not the precision.) .
      */
     capturedSoundLevelUpdate: (soundLevel: number) => void;
     /**
@@ -429,7 +458,7 @@ export interface ZegoEventListener {
      * Caution: The callback notification period is the parameter value set when the [startSoundLevelMonitor] is called.
      * Related APIs: Start sound level monitoring via [startSoundLevelMonitor]. Monitoring local captured audio sound by callback [onCapturedSoundLevelUpdate] or [onCapturedSoundLevelInfoUpdate].
      *
-     * @param soundLevels Remote sound level hash map, key is the streamID, value is the sound level value of the corresponding streamID, value ranging from 0.0 to 100.0.
+     * @param soundLevels Remote sound level hash map, key is the streamID, value is the sound level value of the corresponding streamID, value ranging from 0.0 to 100.0 (This value only represents the range of the sound level value returned by the callback, not the precision.).
      */
     remoteSoundLevelUpdate: (soundLevels: Map<string, number>) => void;
     /**
@@ -529,6 +558,35 @@ export interface ZegoEventListener {
      */
     IMRecvCustomCommand: (roomID: string, fromUser: zego.ZegoUser, command: string) => void;
     /**
+     * The callback triggered when the state of data recording (to a file) changes.
+     *
+     * Available since: 1.10.0
+     * Description: The callback triggered when the state of data recording (to a file) changes.
+     * Use cases: The developer should use this callback to determine the status of the file recording or for UI prompting.
+     * When to trigger: After [startRecordingCapturedData] is called, if the state of the recording process changes, this callback will be triggered.
+     * Restrictions: None.
+     *
+     * @param state File recording status.
+     * @param errorCode Error code, please refer to the error codes document https://docs.zegocloud.com/en/5548.html for details.
+     * @param config Record config.
+     * @param channel Publishing stream channel.
+     */
+    capturedDataRecordStateUpdate: (state: zego.ZegoDataRecordState, errorCode: number, config: zego.ZegoDataRecordConfig, channel: zego.ZegoPublishChannel) => void;
+    /**
+     * The callback to report the current recording progress.
+     *
+     * Available since: 1.10.0
+     * Description: Recording progress update callback, triggered at regular intervals during recording.
+     * Use cases: Developers can do UI hints for the user interface.
+     * When to trigger: After [startRecordingCapturedData] is called, If configured to require a callback, timed trigger during recording.
+     * Restrictions: None.
+     *
+     * @param progress File recording progress, which allows developers to hint at the UI, etc.
+     * @param config Record config.
+     * @param channel Publishing stream channel.
+     */
+    capturedDataRecordProgressUpdate: (progress: zego.ZegoDataRecordProgress, config: zego.ZegoDataRecordConfig, channel: zego.ZegoPublishChannel) => void;
+    /**
      * Network speed test error callback.
      *
      * Available since: 1.20.0
@@ -563,7 +621,7 @@ export interface ZegoEventListener {
      *   Versions 2.10.0 to 2.13.1:
      *   1. Developer must both publish and play streams before you receive your own network quality callback.
      *   2. When playing a stream, the publish end has a play stream and the publish end is in the room where it is located, then the user's network quality will be received.
-     *   Version 2.14.0 and above:
+     *   Versions 2.14.0 to 2.21.1:
      *   1. As long as you publish or play a stream, you will receive your own network quality callback.
      *   2. When you play a stream, the publish end is in the room where you are, and you will receive the user's network quality.
      *   Version 2.22.0 and above:
@@ -576,6 +634,26 @@ export interface ZegoEventListener {
      * @param downstreamQuality Downstream network quality
      */
     networkQuality: (userID: string, upstreamQuality: zego.ZegoStreamQualityLevel, downstreamQuality: zego.ZegoStreamQualityLevel) => void;
+    /**
+     * The callback triggered when a screen capture source exception occurred.
+     *
+     * Available since: 3.6.0
+     * Description: The callback triggered when the mobile screen capture source exception occurred.
+     * Trigger: This callback is triggered when an exception occurs after the mobile screen capture started.
+     * Restrictions: Only available on Android.
+     *
+     * @param exceptionType Screen capture exception type.
+     */
+    mobileScreenCaptureExceptionOccurred: (exceptionType: zego.ZegoScreenCaptureExceptionType) => void;
+    /**
+     * The callback triggered when start screen capture.
+     *
+     * Available since: 3.16.0
+     * Description: The callback triggered when calling the start mobile screen capture.
+     * Trigger: After calling [startScreenCapture], this callback will be triggered when starting screen capture successfully, and [onScreenCaptureExceptionOccurred] will be triggered when failing.
+     * Restrictions: Only available on Android.
+     */
+    mobileScreenCaptureStart: () => void;
 }
 export interface ZegoMediaPlayerListener {
     /**
@@ -617,6 +695,19 @@ export interface ZegoMediaPlayerListener {
      * @param millisecond Progress in milliseconds.
      */
     mediaPlayerPlayingProgress: (mediaPlayer: zego.ZegoMediaPlayer, millisecond: number) => void;
+    /**
+     * The callback to report the current rendering progress of the media player.
+     *
+     * Available since: 3.8.0
+     * Description: The callback to report the current rendering progress of the media player. Set the callback interval by calling [setProgressInterval]. When the callback interval is set to 0, the callback is stopped. The default callback interval is 1 second.
+     * Trigger: This callback will be triggered when the media player starts playing resources.
+     * Restrictions: None.
+     * Related APIs: [setProgressInterval].
+     *
+     * @param mediaPlayer Callback player object.
+     * @param millisecond Progress in milliseconds.
+     */
+    mediaPlayerRenderingProgress: (mediaPlayer: zego.ZegoMediaPlayer, millisecond: number) => void;
 }
 export interface ZegoAudioEffectPlayerListener {
     /**

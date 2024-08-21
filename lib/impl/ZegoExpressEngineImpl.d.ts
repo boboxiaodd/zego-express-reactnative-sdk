@@ -1,6 +1,5 @@
-import * as zego from "../ZegoExpressDefines";
+import * as zego from '../ZegoExpressDefines';
 import { ZegoEventListener, ZegoMediaPlayerListener, ZegoAudioEffectPlayerListener } from '../ZegoExpressEventHandler';
-import type {EventSubscription} from "react-native/Libraries/vendor/emitter/EventEmitter";
 declare type ZegoAnyCallback = (...args: any[]) => any;
 export declare class ZegoExpressEngineImpl {
     static _listeners: Map<string, Map<ZegoAnyCallback, ZegoAnyCallback>>;
@@ -16,7 +15,7 @@ export declare class ZegoExpressEngineImpl {
     getVersion(): Promise<string>;
     uploadLog(): Promise<void>;
     callExperimentalAPI(params: string): Promise<string>;
-    on<EventType extends keyof ZegoEventListener>(event: EventType, callback: ZegoEventListener[EventType]): EventSubscription;
+    on<EventType extends keyof ZegoEventListener>(event: EventType, callback: ZegoEventListener[EventType]): void;
     off<EventType extends keyof ZegoEventListener>(event: EventType, callback?: ZegoEventListener[EventType]): void;
     loginRoom(roomID: string, user: zego.ZegoUser, config?: zego.ZegoRoomConfig): Promise<zego.ZegoRoomLoginResult>;
     logoutRoom(roomID?: string): Promise<zego.ZegoRoomLogoutResult>;
@@ -84,9 +83,12 @@ export declare class ZegoExpressEngineImpl {
     stopNetworkSpeedTest(): Promise<void>;
     getNetworkTimeInfo(): Promise<zego.ZegoNetworkTimeInfo>;
     enableCustomAudioIO(enable: boolean, config: zego.ZegoCustomAudioConfig, channel?: zego.ZegoPublishChannel): Promise<void>;
+    enableCustomVideoCapture(enable: boolean, config?: zego.ZegoCustomVideoCaptureConfig, channel?: zego.ZegoPublishChannel): Promise<void>;
     enableCustomVideoProcessing(enable: boolean, config?: zego.ZegoCustomVideoProcessConfig, channel?: zego.ZegoPublishChannel): Promise<void>;
     setVideoSource(source: zego.ZegoVideoSourceType, channel?: zego.ZegoPublishChannel): Promise<number>;
     setAudioSource(source: zego.ZegoAudioSourceType, channel?: zego.ZegoPublishChannel): Promise<number>;
+    enableVideoObjectSegmentation(enable: boolean, config: zego.ZegoObjectSegmentationConfig, channel?: zego.ZegoPublishChannel): Promise<void>;
+    enableAlphaChannelVideoEncoder(enable: boolean, alphaLayout: zego.ZegoAlphaLayoutType, channel?: zego.ZegoPublishChannel): Promise<void>;
     startScreenCaptureInApp(config?: zego.ZegoScreenCaptureConfig): Promise<void>;
     startScreenCapture(config?: zego.ZegoScreenCaptureConfig): Promise<void>;
     stopScreenCapture(): Promise<void>;
@@ -95,6 +97,8 @@ export declare class ZegoExpressEngineImpl {
     destroyMediaPlayer(mediaPlayer: zego.ZegoMediaPlayer): Promise<void>;
     createAudioEffectPlayer(): Promise<zego.ZegoAudioEffectPlayer | null>;
     destroyAudioEffectPlayer(audioEffectPlayer: zego.ZegoAudioEffectPlayer): Promise<void>;
+    startRecordingCapturedData(config: zego.ZegoDataRecordConfig, channel?: zego.ZegoPublishChannel): Promise<void>;
+    stopRecordingCapturedData(channel?: zego.ZegoPublishChannel): Promise<void>;
     startMixerTask(task: zego.ZegoMixerTask): Promise<zego.ZegoMixerStartResult>;
     stopMixerTask(task: zego.ZegoMixerTask): Promise<zego.ZegoMixerStopResult>;
     startEffectsEnv(): Promise<void>;
@@ -115,6 +119,7 @@ export declare class ZegoMediaPlayerImpl extends zego.ZegoMediaPlayer {
     on<MediaPlayerEventType extends keyof ZegoMediaPlayerListener>(event: MediaPlayerEventType, callback: ZegoMediaPlayerListener[MediaPlayerEventType]): void;
     off<MediaPlayerEventType extends keyof ZegoMediaPlayerListener>(event: MediaPlayerEventType, callback?: ZegoMediaPlayerListener[MediaPlayerEventType]): void;
     loadResource(path: string): Promise<zego.ZegoMediaPlayerLoadResourceResult>;
+    loadResourceWithConfig(resource: zego.ZegoMediaPlayerResource): Promise<zego.ZegoMediaPlayerLoadResourceResult>;
     start(): Promise<void>;
     stop(): Promise<void>;
     pause(): Promise<void>;
@@ -136,6 +141,7 @@ export declare class ZegoMediaPlayerImpl extends zego.ZegoMediaPlayer {
     getAudioTrackCount(): Promise<number>;
     setAudioTrackIndex(index: number): Promise<void>;
     getCurrentState(): Promise<zego.ZegoMediaPlayerState>;
+    getCurrentRenderingProgress(): Promise<number>;
     getIndex(): number;
 }
 export declare class ZegoAudioEffectPlayerImpl extends zego.ZegoAudioEffectPlayer {

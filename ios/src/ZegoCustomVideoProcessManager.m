@@ -6,7 +6,6 @@
 //
 
 #import "ZegoCustomVideoProcessManager.h"
-#import "FUManager.h"
 
 @interface ZegoCustomVideoProcessManager ()
 
@@ -32,9 +31,9 @@
 #pragma mark - ZegoCustomVideoProcessHandler
 - (void)onCapturedUnprocessedCVPixelBuffer:(CVPixelBufferRef)buffer timestamp:(CMTime)timestamp channel:(ZegoPublishChannel)channel {
     if ([self.handler respondsToSelector:@selector(onProcessImageBuffer:)]) {
-        CVPixelBufferRef newBuffer = [self.handler onProcessImageBuffer:buffer];
-        [[ZegoExpressEngine sharedEngine] sendCustomVideoProcessedCVPixelBuffer:newBuffer timestamp:timestamp channel:channel];
+        [self.handler onProcessImageBuffer:buffer];
     }
+    [[ZegoExpressEngine sharedEngine] sendCustomVideoProcessedCVPixelBuffer:buffer timestamp:timestamp channel:channel];
 }
 
 - (void)onStart:(ZegoPublishChannel)channel {

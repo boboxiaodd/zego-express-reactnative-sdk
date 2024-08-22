@@ -4,6 +4,7 @@ import android.app.Application;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.view.View;
 import android.view.TextureView;
 
@@ -26,19 +27,27 @@ import com.facebook.react.uimanager.UIManagerModule;
 
 import org.json.JSONObject;
 
+import java.io.IOError;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
 
+import im.zego.effects.ZegoEffects;
+import im.zego.effects.entity.ZegoEffectsVideoFrameParam;
+import im.zego.effects.entity.ZegoEffectsWhitenParam;
+import im.zego.effects.enums.ZegoEffectsVideoFrameFormat;
 import im.zego.zegoexpress.*;
 import im.zego.zegoexpress.callback.IZegoApiCalledEventHandler;
 import im.zego.zegoexpress.callback.IZegoAudioEffectPlayerEventHandler;
 import im.zego.zegoexpress.callback.IZegoAudioEffectPlayerLoadResourceCallback;
 import im.zego.zegoexpress.callback.IZegoAudioEffectPlayerSeekToCallback;
+import im.zego.zegoexpress.callback.IZegoCustomVideoProcessHandler;
 import im.zego.zegoexpress.callback.IZegoDataRecordEventHandler;
 import im.zego.zegoexpress.callback.IZegoDestroyCompletionCallback;
 import im.zego.zegoexpress.callback.IZegoEventHandler;
@@ -146,6 +155,12 @@ import im.zego.zegoexpress.entity.ZegoStreamRelayCDNInfo;
 import im.zego.zegoexpress.entity.ZegoUser;
 import im.zego.zegoexpress.entity.ZegoVideoConfig;
 import im.zego.zegoexpress.entity.ZegoVoiceChangerParam;
+import okhttp3.Call;
+import okhttp3.ConnectionPool;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 
@@ -156,6 +171,8 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
     private static boolean pluginReported = false;
 
     private final ReactApplicationContext reactContext;
+
+    private ZegoEffects effects = null;
 
     private HashMap<Integer, ZegoMediaPlayer> mediaPlayerMap;
     private HashMap<Integer, ZegoAudioEffectPlayer> audioEffectPlayerMap;
@@ -275,6 +292,14 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
         promise.resolve(ZegoExpressEngine.getVersion());
     }
 
+
+    @ReactMethod
+    public void getAuthInfo(String appSign, Promise promise) {
+        String encryptInfo = ZegoEffects.getAuthInfo(appSign,this.reactContext.getApplicationContext());
+        promise.resolve(encryptInfo);
+    }
+
+
     @ReactMethod
     public void createEngineWithProfile(ReadableMap profileParam, Promise promise) {
 
@@ -300,11 +325,68 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
             profile.appSign = profileParam.getString("appSign");
         }
 
-		ZegoExpressEngine.createEngine(profile, zegoEventHandler);
+        ZegoExpressEngine.createEngine(profile, zegoEventHandler);
+
+        ArrayList<String> aiResourcesInfos = new ArrayList<>();
+        aiResourcesInfos.add("CommonResources.bundle");
+        aiResourcesInfos.add("FaceWhiteningResources.bundle");
+        aiResourcesInfos.add("RosyResources.bundle");
+        aiResourcesInfos.add("TeethWhiteningResources.bundle");
+        ZegoEffects.setResources(aiResourcesInfos);
+        String authInfo = profileParam.getString("authInfo");
+        effects = ZegoEffects.create(authInfo, this.reactContext.getApplicationContext());
+        effects.enableWhiten(true);
+        effects.enableSmooth(true);
+        effects.enableRosy(true);
+        effects.enableSharpen(true);
+        effects.enableWrinklesRemoving(true);
+        effects.enableDarkCirclesRemoving(true);
+        effects.enableBigEyes(true);
+        effects.enableFaceLifting(true);
+        effects.enableSmallMouth(true);
+        effects.enableEyesBrightening(true);
+        effects.enableNoseNarrowing(true);
+        effects.enableTeethWhitening(true);
+        effects.enableLongChin(true);
+        effects.enableForeheadShortening(true);
+        effects.enableMandibleSlimming(true);
+        effects.enableCheekboneSlimming(true);
+        effects.enableFaceShortening(true);
+        effects.enableNoseLengthening(true);
+
+        ZegoCustomVideoProcessConfig config = new ZegoCustomVideoProcessConfig();
+        config.bufferType = ZegoVideoBufferType.GL_TEXTURE_2D;
+        ZegoExpressEngine.getEngine().enableCustomVideoProcessing(true,config,ZegoPublishChannel.MAIN);
+        ZegoExpressEngine.getEngine().setCustomVideoProcessHandler(new IZegoCustomVideoProcessHandler() {
+            @Override
+            public void onStart(ZegoPublishChannel channel) {
+                effects.initEnv(360, 640);
+            }
+
+            @Override
+            public void onStop(ZegoPublishChannel channel) {
+                effects.uninitEnv();
+            }
+
+            @Override
+            public void onCapturedUnprocessedTextureData(int textureID, int width, int height, long referenceTimeMillisecond, ZegoPublishChannel channel) {
+                ZegoEffectsVideoFrameParam param = new ZegoEffectsVideoFrameParam();
+                param.format = ZegoEffectsVideoFrameFormat.RGBA32;
+                param.width = width;
+                param.height = height;
+                int processedTextureId = effects.processTexture(textureID,param);
+                ZegoExpressEngine.getEngine().sendCustomVideoProcessedTextureData(processedTextureId,width,height,referenceTimeMillisecond);
+            }
+        });
+
+
         kIsInited = true;
+
 
         promise.resolve(null);
 	}
+
+
 
     @ReactMethod
     public void createEngine(Double appID, String appSign, boolean isTestEnv, int scenario, Promise promise) {

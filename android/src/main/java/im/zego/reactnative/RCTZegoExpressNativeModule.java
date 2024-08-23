@@ -506,21 +506,11 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
         ZegoExpressEngine.createEngine(profile, zegoEventHandler);
 
         this.bundleDir = this.reactContext.getFilesDir() + File.separator + ZegoTag;
-        File file = new File(this.bundleDir);
         try{
-            if(!file.exists()){ //目录不存在
-                Log.e(ZegoTag,"bundleDir not exists!");
-                if(file.mkdir()){ //创建目录
-                    unzip();
-                }
-            }else{
-                Log.e(ZegoTag,"bundleDir exists.");
-                unzip();
-            }
+            unzip();
         }catch (IOException e){
             Log.e(ZegoTag,e.toString());
         }
-
 
 
         ArrayList<String> aiResourcesInfos = new ArrayList<>();

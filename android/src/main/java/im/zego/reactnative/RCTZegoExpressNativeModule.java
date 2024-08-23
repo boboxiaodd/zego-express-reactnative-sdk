@@ -1,10 +1,13 @@
 package im.zego.reactnative;
 
 import android.app.Application;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.View;
 import android.view.TextureView;
 
@@ -27,20 +30,46 @@ import com.facebook.react.uimanager.UIManagerModule;
 
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOError;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
 
 import im.zego.effects.ZegoEffects;
+import im.zego.effects.entity.ZegoEffectsBigEyesParam;
+import im.zego.effects.entity.ZegoEffectsCheekboneSlimmingParam;
+import im.zego.effects.entity.ZegoEffectsDarkCirclesRemovingParam;
+import im.zego.effects.entity.ZegoEffectsEyesBrighteningParam;
+import im.zego.effects.entity.ZegoEffectsFaceLiftingParam;
+import im.zego.effects.entity.ZegoEffectsFaceShorteningParam;
+import im.zego.effects.entity.ZegoEffectsFilterParam;
+import im.zego.effects.entity.ZegoEffectsForeheadShorteningParam;
+import im.zego.effects.entity.ZegoEffectsLongChinParam;
+import im.zego.effects.entity.ZegoEffectsMandibleSlimmingParam;
+import im.zego.effects.entity.ZegoEffectsNoseLengtheningParam;
+import im.zego.effects.entity.ZegoEffectsNoseNarrowingParam;
+import im.zego.effects.entity.ZegoEffectsRosyParam;
+import im.zego.effects.entity.ZegoEffectsSharpenParam;
+import im.zego.effects.entity.ZegoEffectsSmallMouthParam;
+import im.zego.effects.entity.ZegoEffectsSmoothParam;
+import im.zego.effects.entity.ZegoEffectsTeethWhiteningParam;
 import im.zego.effects.entity.ZegoEffectsVideoFrameParam;
 import im.zego.effects.entity.ZegoEffectsWhitenParam;
+import im.zego.effects.entity.ZegoEffectsWrinklesRemovingParam;
 import im.zego.effects.enums.ZegoEffectsVideoFrameFormat;
 import im.zego.zegoexpress.*;
 import im.zego.zegoexpress.callback.IZegoApiCalledEventHandler;
@@ -165,6 +194,7 @@ import okhttp3.Response;
 public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 
     private static final String Prefix = "im.zego.reactnative.";
+    private static final String ZegoTag = "ZegoEffect";
 
     private static boolean kIsInited = false;
 
@@ -173,6 +203,7 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
     private final ReactApplicationContext reactContext;
 
     private ZegoEffects effects = null;
+    private String bundleDir = "";
 
     private HashMap<Integer, ZegoMediaPlayer> mediaPlayerMap;
     private HashMap<Integer, ZegoAudioEffectPlayer> audioEffectPlayerMap;
@@ -299,6 +330,153 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
         promise.resolve(encryptInfo);
     }
 
+    @ReactMethod
+    public void setFilter(String filterName){
+        if(!Objects.equals(filterName, "null")){
+            effects.setFilter(this.bundleDir  + File.separator + filterName+".bundle");
+        }else{
+            effects.setFilter(null);
+        }
+    }
+
+    @ReactMethod
+    public void setFilterLevel(Integer filterLevel){
+        ZegoEffectsFilterParam param = new ZegoEffectsFilterParam();
+        param.intensity = filterLevel;
+        effects.setFilterParam(param);
+    }
+
+    @ReactMethod
+    public void setBeauty(String name,Integer value){
+        Log.i(ZegoTag,"name = " + name + " value = " + value);
+        switch (name){
+            case "smooth": //磨皮
+                ZegoEffectsSmoothParam zegoEffectsSmoothParam = new ZegoEffectsSmoothParam();
+                zegoEffectsSmoothParam.intensity = value;
+                effects.setSmoothParam(zegoEffectsSmoothParam);
+                break;
+            case "whiten"://美白
+                ZegoEffectsWhitenParam zegoEffectsWhitenParam = new ZegoEffectsWhitenParam();
+                zegoEffectsWhitenParam.intensity = value;
+                effects.setWhitenParam(zegoEffectsWhitenParam);
+                break;
+            case "rosy": //红润
+                ZegoEffectsRosyParam zegoEffectsRosyParam = new ZegoEffectsRosyParam();
+                zegoEffectsRosyParam.intensity = value;
+                effects.setRosyParam(zegoEffectsRosyParam);
+                break;
+            case "sharpen": //锐化
+                ZegoEffectsSharpenParam zegoEffectsSharpenParam = new ZegoEffectsSharpenParam();
+                zegoEffectsSharpenParam.intensity = value;
+                effects.setSharpenParam(zegoEffectsSharpenParam);
+                break;
+            case "wrinkles"://去法令纹
+                ZegoEffectsWrinklesRemovingParam zegoEffectsWrinklesRemovingParam = new ZegoEffectsWrinklesRemovingParam();
+                zegoEffectsWrinklesRemovingParam.intensity = value;
+                effects.setWrinklesRemovingParam(zegoEffectsWrinklesRemovingParam);
+                break;
+            case "darkCircles": //去黑眼圈
+                ZegoEffectsDarkCirclesRemovingParam zegoEffectsDarkCirclesRemovingParam = new ZegoEffectsDarkCirclesRemovingParam();
+                zegoEffectsDarkCirclesRemovingParam.intensity = value;
+                effects.setDarkCirclesRemovingParam(zegoEffectsDarkCirclesRemovingParam);
+                break;
+            case "faceLift": //瘦脸
+                ZegoEffectsFaceLiftingParam zegoEffectsFaceLiftingParam = new ZegoEffectsFaceLiftingParam();
+                zegoEffectsFaceLiftingParam.intensity = value;
+                effects.setFaceLiftingParam(zegoEffectsFaceLiftingParam);
+                break;
+            case "faceshort": //小脸
+                ZegoEffectsFaceShorteningParam zegoEffectsFaceShorteningParam = new ZegoEffectsFaceShorteningParam();
+                zegoEffectsFaceShorteningParam.intensity = value;
+                effects.setFaceShorteningParam(zegoEffectsFaceShorteningParam);
+                break;
+            case "longChin": //长下巴
+                ZegoEffectsLongChinParam zegoEffectsLongChinParam = new ZegoEffectsLongChinParam();
+                zegoEffectsLongChinParam.intensity = value;
+                effects.setLongChinParam(zegoEffectsLongChinParam);
+                break;
+            case "foreheadShort": //缩小额头高度
+                ZegoEffectsForeheadShorteningParam zegoEffectsForeheadShorteningParam = new ZegoEffectsForeheadShorteningParam();
+                zegoEffectsForeheadShorteningParam.intensity = value;
+                effects.setForeheadShorteningParam(zegoEffectsForeheadShorteningParam);
+                break;
+            case "mandible": //瘦下颌骨
+                ZegoEffectsMandibleSlimmingParam zegoEffectsMandibleSlimmingParam = new ZegoEffectsMandibleSlimmingParam();
+                zegoEffectsMandibleSlimmingParam.intensity = value;
+                effects.setMandibleSlimmingParam(zegoEffectsMandibleSlimmingParam);
+                break;
+            case "cheekbone": //瘦颧骨
+                ZegoEffectsCheekboneSlimmingParam zegoEffectsCheekboneSlimmingParam = new ZegoEffectsCheekboneSlimmingParam();
+                zegoEffectsCheekboneSlimmingParam.intensity = value;
+                effects.setCheekboneSlimmingParam(zegoEffectsCheekboneSlimmingParam);
+                break;
+            case "bigEye": //大眼
+                ZegoEffectsBigEyesParam zegoEffectsBigEyesParam = new ZegoEffectsBigEyesParam();
+                zegoEffectsBigEyesParam.intensity = value;
+                effects.setBigEyesParam(zegoEffectsBigEyesParam);
+                break;
+            case "eyesBright"://亮眼
+                ZegoEffectsEyesBrighteningParam zegoEffectsEyesBrighteningParam = new ZegoEffectsEyesBrighteningParam();
+                zegoEffectsEyesBrighteningParam.intensity = value;
+                effects.setEyesBrighteningParam(zegoEffectsEyesBrighteningParam);
+                break;
+            case "smallMouth": //小嘴
+                ZegoEffectsSmallMouthParam zegoEffectsSmallMouthParam = new ZegoEffectsSmallMouthParam();
+                zegoEffectsSmallMouthParam.intensity = value;
+                effects.setSmallMouthParam(zegoEffectsSmallMouthParam);
+                break;
+            case "noseNarrow": //瘦鼻
+                ZegoEffectsNoseNarrowingParam zegoEffectsNoseNarrowingParam = new ZegoEffectsNoseNarrowingParam();
+                zegoEffectsNoseNarrowingParam.intensity = value;
+                effects.setNoseNarrowingParam(zegoEffectsNoseNarrowingParam);
+                break;
+            case "noseLength": //长鼻
+                ZegoEffectsNoseLengtheningParam zegoEffectsNoseLengtheningParam = new ZegoEffectsNoseLengtheningParam();
+                zegoEffectsNoseLengtheningParam.intensity = value;
+                effects.setNoseLengtheningParam(zegoEffectsNoseLengtheningParam);
+                break;
+            case "teethWhite": //白牙
+                ZegoEffectsTeethWhiteningParam zegoEffectsTeethWhiteningParam = new ZegoEffectsTeethWhiteningParam();
+                zegoEffectsTeethWhiteningParam.intensity = value;
+                effects.setTeethWhiteningParam(zegoEffectsTeethWhiteningParam);
+                break;
+        }
+    }
+
+    public void unzip() throws IOException {
+        File destDir = new File(this.bundleDir);
+        if (!destDir.exists()) {
+            destDir.mkdir();
+        }
+
+        ZipInputStream zipIn = new ZipInputStream(this.reactContext.getAssets().open("ZegoEffect.zip"));
+        ZipEntry entry = zipIn.getNextEntry();
+        while (entry != null) {
+            String filePath = this.bundleDir + File.separator + entry.getName();
+            if (!entry.isDirectory()) {
+                extractFile(zipIn, filePath);
+            } else {
+                File dir = new File(filePath);
+                dir.mkdir();
+            }
+            zipIn.closeEntry();
+            entry = zipIn.getNextEntry();
+        }
+        zipIn.close();
+    }
+
+    private void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
+        byte[] bytesIn = new byte[4096];
+        int read;
+        while ((read = zipIn.read(bytesIn)) != -1) {
+            bos.write(bytesIn, 0, read);
+        }
+        bos.close();
+    }
+
+
+
 
     @ReactMethod
     public void createEngineWithProfile(ReadableMap profileParam, Promise promise) {
@@ -327,11 +505,32 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 
         ZegoExpressEngine.createEngine(profile, zegoEventHandler);
 
+        this.bundleDir = this.reactContext.getFilesDir() + File.separator + ZegoTag;
+        File file = new File(this.bundleDir);
+        try{
+            if(!file.exists()){ //目录不存在
+                Log.e(ZegoTag,"bundleDir not exists!");
+                if(file.mkdir()){ //创建目录
+                    unzip();
+                }
+            }else{
+                Log.e(ZegoTag,"bundleDir exists.");
+                unzip();
+            }
+        }catch (IOException e){
+            Log.e(ZegoTag,e.toString());
+        }
+
+
+
         ArrayList<String> aiResourcesInfos = new ArrayList<>();
-        aiResourcesInfos.add("CommonResources.bundle");
-        aiResourcesInfos.add("FaceWhiteningResources.bundle");
-        aiResourcesInfos.add("RosyResources.bundle");
-        aiResourcesInfos.add("TeethWhiteningResources.bundle");
+
+        aiResourcesInfos.add(this.bundleDir + File.separator + "FaceWhiteningResources.bundle");
+        aiResourcesInfos.add(this.bundleDir + File.separator + "RosyResources.bundle");
+        aiResourcesInfos.add(this.bundleDir + File.separator + "TeethWhiteningResources.bundle");
+        aiResourcesInfos.add(this.bundleDir + File.separator + "FaceDetectionModel.model");
+
+
         ZegoEffects.setResources(aiResourcesInfos);
         String authInfo = profileParam.getString("authInfo");
         effects = ZegoEffects.create(authInfo, this.reactContext.getApplicationContext());

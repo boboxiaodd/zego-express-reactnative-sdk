@@ -63,6 +63,13 @@ export default class ZegoExpressEngine {
      * @return SDK version.
      */
     static getVersion(): Promise<string>;
+
+
+    static getAuthInfo(appSign: string): Promise<string>;
+    static setFilter(filterName: string): void;
+    static setFilterLevel(filterLevel: number): void;
+    static setBeauty(name:string, value: number): void;
+    
     /**
      * Uploads logs to the ZEGO server.
      *

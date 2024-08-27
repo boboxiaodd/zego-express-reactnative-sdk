@@ -83,6 +83,5 @@ dependencies {
     implementation 'com.facebook.react:react-native:+'  // From node_modules
     implementation 'im.zego:express-video:3.16.2'
     implementation 'im.zego:effects-sdk:1.4.9.1129'
-    implementation "com.squareup.okhttp3:okhttp:${safeExtGet("okHttpVersion", '4.9.2')}"
 }
 

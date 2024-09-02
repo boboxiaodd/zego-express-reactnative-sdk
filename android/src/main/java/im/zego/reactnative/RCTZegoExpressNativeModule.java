@@ -1,76 +1,56 @@
 package im.zego.reactnative;
 
 import android.app.Application;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
-import android.net.Uri;
-import android.provider.ContactsContract;
+import android.hardware.Camera;
 import android.util.Log;
 import android.view.View;
 import android.view.TextureView;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.uimanager.NativeViewHierarchyManager;
 import com.facebook.react.uimanager.UIBlock;
 import com.facebook.react.uimanager.UIManagerModule;
+import com.faceunity.core.callback.OperateCallback;
+import com.faceunity.core.entity.FUBundleData;
+import com.faceunity.core.entity.FURenderInputData;
+import com.faceunity.core.entity.FURenderOutputData;
+import com.faceunity.core.enumeration.CameraFacingEnum;
+import com.faceunity.core.enumeration.FUAITypeEnum;
+import com.faceunity.core.enumeration.FUFaceBeautyMultiModePropertyEnum;
+import com.faceunity.core.enumeration.FUFaceBeautyPropertyModeEnum;
+import com.faceunity.core.enumeration.FUInputTextureEnum;
+import com.faceunity.core.enumeration.FUTransformMatrixEnum;
+import com.faceunity.core.faceunity.FURenderConfig;
+import com.faceunity.core.faceunity.FURenderKit;
+import com.faceunity.core.faceunity.FURenderManager;
+import com.faceunity.core.model.facebeauty.FaceBeauty;
+import com.faceunity.core.utils.CameraUtils;
+import com.faceunity.core.utils.FULogger;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOError;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresPermission;
 
-import im.zego.effects.ZegoEffects;
-import im.zego.effects.entity.ZegoEffectsBigEyesParam;
-import im.zego.effects.entity.ZegoEffectsCheekboneSlimmingParam;
-import im.zego.effects.entity.ZegoEffectsDarkCirclesRemovingParam;
-import im.zego.effects.entity.ZegoEffectsEyesBrighteningParam;
-import im.zego.effects.entity.ZegoEffectsFaceLiftingParam;
-import im.zego.effects.entity.ZegoEffectsFaceShorteningParam;
-import im.zego.effects.entity.ZegoEffectsFilterParam;
-import im.zego.effects.entity.ZegoEffectsForeheadShorteningParam;
-import im.zego.effects.entity.ZegoEffectsLongChinParam;
-import im.zego.effects.entity.ZegoEffectsMandibleSlimmingParam;
-import im.zego.effects.entity.ZegoEffectsNoseLengtheningParam;
-import im.zego.effects.entity.ZegoEffectsNoseNarrowingParam;
-import im.zego.effects.entity.ZegoEffectsRosyParam;
-import im.zego.effects.entity.ZegoEffectsSharpenParam;
-import im.zego.effects.entity.ZegoEffectsSmallMouthParam;
-import im.zego.effects.entity.ZegoEffectsSmoothParam;
-import im.zego.effects.entity.ZegoEffectsTeethWhiteningParam;
-import im.zego.effects.entity.ZegoEffectsVideoFrameParam;
-import im.zego.effects.entity.ZegoEffectsWhitenParam;
-import im.zego.effects.entity.ZegoEffectsWrinklesRemovingParam;
-import im.zego.effects.enums.ZegoEffectsVideoFrameFormat;
 import im.zego.zegoexpress.*;
 import im.zego.zegoexpress.callback.IZegoApiCalledEventHandler;
 import im.zego.zegoexpress.callback.IZegoAudioEffectPlayerEventHandler;
@@ -184,12 +164,6 @@ import im.zego.zegoexpress.entity.ZegoStreamRelayCDNInfo;
 import im.zego.zegoexpress.entity.ZegoUser;
 import im.zego.zegoexpress.entity.ZegoVideoConfig;
 import im.zego.zegoexpress.entity.ZegoVoiceChangerParam;
-import okhttp3.Call;
-import okhttp3.ConnectionPool;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 
@@ -201,9 +175,6 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
     private static boolean pluginReported = false;
 
     private final ReactApplicationContext reactContext;
-
-    private ZegoEffects effects = null;
-    private String bundleDir = "";
 
     private HashMap<Integer, ZegoMediaPlayer> mediaPlayerMap;
     private HashMap<Integer, ZegoAudioEffectPlayer> audioEffectPlayerMap;
@@ -324,157 +295,221 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
     }
 
 
-    @ReactMethod
-    public void getAuthInfo(String appSign, Promise promise) {
-        String encryptInfo = ZegoEffects.getAuthInfo(appSign,this.reactContext.getApplicationContext());
-        promise.resolve(encryptInfo);
-    }
+    private FaceBeauty beauty;
+    private final String BUNDLE_FACE_BEAUTIFICATION = "graphics" + File.separator + "face_beautification.bundle";
+    private final String BUNDLE_AI_FACE = "model" + File.separator + "ai_face_processor.bundle";
 
     @ReactMethod
-    public void setFilter(String filterName){
-        if(!Objects.equals(filterName, "null")){
-            effects.setFilter(this.bundleDir  + File.separator + filterName+".bundle");
-        }else{
-            effects.setFilter(null);
-        }
-    }
+    public void initBeauty(ReadableMap config){
+        beauty = new FaceBeauty(new FUBundleData(BUNDLE_FACE_BEAUTIFICATION));
+        /*滤镜*/
+        beauty.setFilterName(Objects.requireNonNull(config.getString("filterName")));
+        beauty.setFilterIntensity(config.getDouble("filterLevel"));
+        /*美肤*/
+        beauty.setEnableHeavyBlur(config.getBoolean("heavyBlur"));
+        beauty.setEnableSkinDetect(config.getBoolean("enableSkinDetect"));
+        beauty.setEnableSkinSeg(config.getBoolean("enableSkinSeg"));
+        beauty.setEnableBlurUseMask(config.getBoolean("enableBlurUseMask"));
+        beauty.setNonSkinBlurIntensity(config.getDouble("nonSkinBlurIntensity"));
 
+        beauty.setBlurType(config.getInt("blurType"));
+        beauty.setFaceShape(config.getInt("faceShape"));
+        beauty.setFaceShapeIntensity(config.getDouble("faceShapeLevel"));
+        beauty.setBlurIntensity(config.getDouble("blurLevel"));
+        beauty.setColorIntensity(config.getDouble("colorLevel"));
+        beauty.setRedIntensity(config.getDouble("redLevel"));
+        beauty.setSharpenIntensity(config.getDouble("sharpen"));
+        beauty.setFaceThreeIntensity(config.getDouble("faceThreed"));
+        beauty.setEyeBrightIntensity(config.getDouble("eyeBright"));
+        beauty.setToothIntensity(config.getDouble("toothWhiten"));
+        /*美形*/
+        beauty.setCheekThinningIntensity(config.getDouble("cheekThinning"));
+        beauty.setCheekVIntensity(config.getDouble("cheekV"));
+        beauty.setCheekLongIntensity(config.getDouble("cheekLong"));
+        beauty.setCheekCircleIntensity(config.getDouble("cheekCircle"));
+        beauty.setCheekNarrowIntensity(config.getDouble("cheekNarrow"));
+        beauty.setCheekSmallIntensity(config.getDouble("cheekSmall"));
+        beauty.setCheekShortIntensity(config.getDouble("cheekShort"));
+        beauty.setCheekBonesIntensity(config.getDouble("intensityCheekbones"));
+        beauty.setLowerJawIntensity(config.getDouble("intensityLowerJaw"));
+        beauty.setNoseIntensity(config.getDouble("intensityNose"));
+        beauty.setCanthusIntensity(config.getDouble("intensityCanthus"));
+        beauty.setEyeLidIntensity(config.getDouble("intensityEyeLid"));
+        beauty.setSmileIntensity(config.getDouble("intensitySmile"));
+        beauty.setEyeCircleIntensity(config.getDouble("intensityEyeCircle"));
+        beauty.setChinIntensity(config.getDouble("intensityChin"));
+        beauty.setForHeadIntensity(config.getDouble("intensityForehead"));
+        beauty.setLipThickIntensity(config.getDouble("intensityLipThick"));
+        beauty.setEyeHeightIntensity(config.getDouble("intensityEyeHeight"));
+        beauty.setEyeSpaceIntensity(config.getDouble("intensityEyeSpace"));
+        beauty.setEyeRotateIntensity(config.getDouble("intensityEyeRotate"));
+        beauty.setLongNoseIntensity(config.getDouble("intensityLongNose"));
+        beauty.setPhiltrumIntensity(config.getDouble("intensityPhiltrum"));
+        beauty.setBrowHeightIntensity(config.getDouble("intensityBrowHeight"));
+        beauty.setBrowSpaceIntensity(config.getDouble("intensityBrowSpace"));
+        beauty.setBrowThickIntensity(config.getDouble("intensityBrowThick"));
+        beauty.setRemovePouchIntensity(config.getDouble("intensityBrowThick"));
+        beauty.setRemoveLawPatternIntensity(config.getDouble("removeNasolabialFoldsStrength"));
+        beauty.setEyeEnlargingIntensity(config.getDouble("eyeEnlarging"));
+        beauty.setMouthIntensity(config.getDouble("intensityMouth"));
+        beauty.setDelspotIntensity(config.getDouble("delspotIntensity"));
+    }
     @ReactMethod
-    public void setFilterLevel(Integer filterLevel){
-        ZegoEffectsFilterParam param = new ZegoEffectsFilterParam();
-        param.intensity = filterLevel;
-        effects.setFilterParam(param);
+    public void setBeautyString(String key,String value) {
+        beauty.setFilterName(value);
     }
-
     @ReactMethod
-    public void setBeauty(String name,Integer value){
-        Log.i(ZegoTag,"name = " + name + " value = " + value);
-        switch (name){
-            case "smooth": //磨皮
-                ZegoEffectsSmoothParam zegoEffectsSmoothParam = new ZegoEffectsSmoothParam();
-                zegoEffectsSmoothParam.intensity = value;
-                effects.setSmoothParam(zegoEffectsSmoothParam);
+    public void setBeautyBool(String key,Boolean value) {
+        switch (key){
+            case "heavyBlur":
+                beauty.setEnableHeavyBlur(value);
                 break;
-            case "whiten"://美白
-                ZegoEffectsWhitenParam zegoEffectsWhitenParam = new ZegoEffectsWhitenParam();
-                zegoEffectsWhitenParam.intensity = value;
-                effects.setWhitenParam(zegoEffectsWhitenParam);
+            case "enableSkinDetect":
+                beauty.setEnableSkinDetect(value);
                 break;
-            case "rosy": //红润
-                ZegoEffectsRosyParam zegoEffectsRosyParam = new ZegoEffectsRosyParam();
-                zegoEffectsRosyParam.intensity = value;
-                effects.setRosyParam(zegoEffectsRosyParam);
+            case "enableSkinSeg":
+                beauty.setEnableSkinSeg(value);
                 break;
-            case "sharpen": //锐化
-                ZegoEffectsSharpenParam zegoEffectsSharpenParam = new ZegoEffectsSharpenParam();
-                zegoEffectsSharpenParam.intensity = value;
-                effects.setSharpenParam(zegoEffectsSharpenParam);
+            case "enableBlurUseMask":
+                beauty.setEnableBlurUseMask(value);
                 break;
-            case "wrinkles"://去法令纹
-                ZegoEffectsWrinklesRemovingParam zegoEffectsWrinklesRemovingParam = new ZegoEffectsWrinklesRemovingParam();
-                zegoEffectsWrinklesRemovingParam.intensity = value;
-                effects.setWrinklesRemovingParam(zegoEffectsWrinklesRemovingParam);
+        }
+
+    }
+    @ReactMethod
+    public void setBeautyInt(String key,Integer value) {
+        switch (key){
+            case "blurType":
+                beauty.setBlurType(value);
                 break;
-            case "darkCircles": //去黑眼圈
-                ZegoEffectsDarkCirclesRemovingParam zegoEffectsDarkCirclesRemovingParam = new ZegoEffectsDarkCirclesRemovingParam();
-                zegoEffectsDarkCirclesRemovingParam.intensity = value;
-                effects.setDarkCirclesRemovingParam(zegoEffectsDarkCirclesRemovingParam);
-                break;
-            case "faceLift": //瘦脸
-                ZegoEffectsFaceLiftingParam zegoEffectsFaceLiftingParam = new ZegoEffectsFaceLiftingParam();
-                zegoEffectsFaceLiftingParam.intensity = value;
-                effects.setFaceLiftingParam(zegoEffectsFaceLiftingParam);
-                break;
-            case "faceshort": //小脸
-                ZegoEffectsFaceShorteningParam zegoEffectsFaceShorteningParam = new ZegoEffectsFaceShorteningParam();
-                zegoEffectsFaceShorteningParam.intensity = value;
-                effects.setFaceShorteningParam(zegoEffectsFaceShorteningParam);
-                break;
-            case "longChin": //长下巴
-                ZegoEffectsLongChinParam zegoEffectsLongChinParam = new ZegoEffectsLongChinParam();
-                zegoEffectsLongChinParam.intensity = value;
-                effects.setLongChinParam(zegoEffectsLongChinParam);
-                break;
-            case "foreheadShort": //缩小额头高度
-                ZegoEffectsForeheadShorteningParam zegoEffectsForeheadShorteningParam = new ZegoEffectsForeheadShorteningParam();
-                zegoEffectsForeheadShorteningParam.intensity = value;
-                effects.setForeheadShorteningParam(zegoEffectsForeheadShorteningParam);
-                break;
-            case "mandible": //瘦下颌骨
-                ZegoEffectsMandibleSlimmingParam zegoEffectsMandibleSlimmingParam = new ZegoEffectsMandibleSlimmingParam();
-                zegoEffectsMandibleSlimmingParam.intensity = value;
-                effects.setMandibleSlimmingParam(zegoEffectsMandibleSlimmingParam);
-                break;
-            case "cheekbone": //瘦颧骨
-                ZegoEffectsCheekboneSlimmingParam zegoEffectsCheekboneSlimmingParam = new ZegoEffectsCheekboneSlimmingParam();
-                zegoEffectsCheekboneSlimmingParam.intensity = value;
-                effects.setCheekboneSlimmingParam(zegoEffectsCheekboneSlimmingParam);
-                break;
-            case "bigEye": //大眼
-                ZegoEffectsBigEyesParam zegoEffectsBigEyesParam = new ZegoEffectsBigEyesParam();
-                zegoEffectsBigEyesParam.intensity = value;
-                effects.setBigEyesParam(zegoEffectsBigEyesParam);
-                break;
-            case "eyesBright"://亮眼
-                ZegoEffectsEyesBrighteningParam zegoEffectsEyesBrighteningParam = new ZegoEffectsEyesBrighteningParam();
-                zegoEffectsEyesBrighteningParam.intensity = value;
-                effects.setEyesBrighteningParam(zegoEffectsEyesBrighteningParam);
-                break;
-            case "smallMouth": //小嘴
-                ZegoEffectsSmallMouthParam zegoEffectsSmallMouthParam = new ZegoEffectsSmallMouthParam();
-                zegoEffectsSmallMouthParam.intensity = value;
-                effects.setSmallMouthParam(zegoEffectsSmallMouthParam);
-                break;
-            case "noseNarrow": //瘦鼻
-                ZegoEffectsNoseNarrowingParam zegoEffectsNoseNarrowingParam = new ZegoEffectsNoseNarrowingParam();
-                zegoEffectsNoseNarrowingParam.intensity = value;
-                effects.setNoseNarrowingParam(zegoEffectsNoseNarrowingParam);
-                break;
-            case "noseLength": //长鼻
-                ZegoEffectsNoseLengtheningParam zegoEffectsNoseLengtheningParam = new ZegoEffectsNoseLengtheningParam();
-                zegoEffectsNoseLengtheningParam.intensity = value;
-                effects.setNoseLengtheningParam(zegoEffectsNoseLengtheningParam);
-                break;
-            case "teethWhite": //白牙
-                ZegoEffectsTeethWhiteningParam zegoEffectsTeethWhiteningParam = new ZegoEffectsTeethWhiteningParam();
-                zegoEffectsTeethWhiteningParam.intensity = value;
-                effects.setTeethWhiteningParam(zegoEffectsTeethWhiteningParam);
+            case "faceShape":
+                beauty.setFaceShape(value);
                 break;
         }
     }
-
-    public void unzip() throws IOException {
-        File destDir = new File(this.bundleDir);
-        if (!destDir.exists()) {
-            destDir.mkdir();
+    @ReactMethod
+    public void setBeauty(String key,Double value) {
+        Log.i(ZegoTag,key + " = " + value.toString());
+        switch (key){
+            case "filterLevel":
+                beauty.setFilterIntensity(value);
+                break;
+            case "faceShapeLevel":
+                beauty.setFaceShapeIntensity(value);
+                break;
+            case "blurLevel":
+                beauty.setBlurIntensity(value);
+                break;
+            case "colorLevel":
+                beauty.setColorIntensity(value);
+                break;
+            case "redLevel":
+                beauty.setRedIntensity(value);
+                break;
+            case "sharpen":
+                beauty.setSharpenIntensity(value);
+                break;
+            case "faceThreed":
+                beauty.setFaceThreeIntensity(value);
+                break;
+            case "eyeBright":
+                beauty.setEyeBrightIntensity(value);
+                break;
+            case "toothWhiten":
+                beauty.setToothIntensity(value);
+                break;
+            case "cheekThinning":
+                beauty.setCheekThinningIntensity(value);
+                break;
+            case "cheekV":
+                beauty.setCheekVIntensity(value);
+                break;
+            case "cheekLong":
+                beauty.setCheekLongIntensity(value);
+                break;
+            case "cheekCircle":
+                beauty.setCheekCircleIntensity(value);
+                break;
+            case "cheekNarrow":
+                beauty.setCheekNarrowIntensity(value);
+                break;
+            case "cheekSmall":
+                beauty.setCheekSmallIntensity(value);
+                break;
+            case "cheekShort":
+                beauty.setCheekShortIntensity(value);
+                break;
+            case "intensityCheekbones":
+                beauty.setCheekBonesIntensity(value);
+                break;
+            case "intensityLowerJaw":
+                beauty.setLowerJawIntensity(value);
+                break;
+            case "intensityNose":
+                beauty.setNoseIntensity(value);
+                break;
+            case "intensityCanthus":
+                beauty.setCanthusIntensity(value);
+                break;
+            case "intensityEyeLid":
+                beauty.setEyeLidIntensity(value);
+                break;
+            case "intensitySmile":
+                beauty.setSmileIntensity(value);
+                break;
+            case "intensityEyeCircle":
+                beauty.setEyeCircleIntensity(value);
+                break;
+            case "intensityChin":
+                beauty.setChinIntensity(value);
+                break;
+            case "intensityForehead":
+                beauty.setForHeadIntensity(value);
+                break;
+            case "intensityLipThick":
+                beauty.setLipThickIntensity(value);
+                break;
+            case "intensityEyeHeight":
+                beauty.setEyeHeightIntensity(value);
+                break;
+            case "intensityEyeSpace":
+                beauty.setEyeSpaceIntensity(value);
+                break;
+            case "intensityEyeRotate":
+                beauty.setEyeRotateIntensity(value);
+                break;
+            case "intensityLongNose":
+                beauty.setLongNoseIntensity(value);
+                break;
+            case "intensityPhiltrum":
+                beauty.setPhiltrumIntensity(value);
+                break;
+            case "intensityBrowHeight":
+                beauty.setBrowHeightIntensity(value);
+                break;
+            case "intensityBrowSpace":
+                beauty.setBrowSpaceIntensity(value);
+                break;
+            case "intensityBrowThick":
+                beauty.setBrowThickIntensity(value);
+                break;
+            case "removePouchStrength": //去黑眼圈
+                beauty.setRemovePouchIntensity(value);
+                break;
+            case "removeNasolabialFoldsStrength": //去法令纹
+                beauty.setRemoveLawPatternIntensity(value);
+                break;
+            case "eyeEnlarging": //大眼
+                beauty.setEyeEnlargingIntensity(value);
+                break;
+            case "intensityMouth": //嘴形
+                beauty.setMouthIntensity(value);
+                break;
+            case "delspotIntensity": //祛斑痘强度
+                beauty.setDelspotIntensity(value);
+                break;
         }
-
-        ZipInputStream zipIn = new ZipInputStream(this.reactContext.getAssets().open("ZegoEffect.zip"));
-        ZipEntry entry = zipIn.getNextEntry();
-        while (entry != null) {
-            String filePath = this.bundleDir + File.separator + entry.getName();
-            if (!entry.isDirectory()) {
-                extractFile(zipIn, filePath);
-            } else {
-                File dir = new File(filePath);
-                dir.mkdir();
-            }
-            zipIn.closeEntry();
-            entry = zipIn.getNextEntry();
-        }
-        zipIn.close();
     }
-
-    private void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
-        byte[] bytesIn = new byte[4096];
-        int read;
-        while ((read = zipIn.read(bytesIn)) != -1) {
-            bos.write(bytesIn, 0, read);
-        }
-        bos.close();
-    }
-
 
 
 
@@ -505,43 +540,28 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 
         ZegoExpressEngine.createEngine(profile, zegoEventHandler);
 
-        this.bundleDir = this.reactContext.getFilesDir() + File.separator + ZegoTag;
-        try{
-            unzip();
-        }catch (IOException e){
-            Log.e(ZegoTag,e.toString());
-        }
 
+        FURenderManager.setKitDebug(FULogger.LogLevel.TRACE);
+        FURenderManager.setCoreDebug(FULogger.LogLevel.ERROR);
+        FURenderKit mFURenderKit = FURenderKit.getInstance();
+        FURenderManager.registerFURender(reactContext, authpack.A(), new OperateCallback() {
+            @Override
+            public void onSuccess(int i, @NotNull String s) {
+                if (i == FURenderConfig.OPERATE_SUCCESS_AUTH) {
+                    mFURenderKit.getFUAIController().loadAIProcessor(BUNDLE_AI_FACE, FUAITypeEnum.FUAITYPE_FACEPROCESSOR);
+                    mFURenderKit.getFUAIController().setMaxFaces(1);
+//                    int cameraFrontOrientation = CameraUtils.INSTANCE.getCameraOrientation(Camera.CameraInfo.CAMERA_FACING_FRONT);
+//                    int cameraBackOrientation = CameraUtils.INSTANCE.getCameraOrientation(Camera.CameraInfo.CAMERA_FACING_BACK);
+//                    HashMap<Integer, CameraFacingEnum> cameraOrientationMap = new HashMap<>();
+//                    cameraOrientationMap.put(cameraFrontOrientation, CameraFacingEnum.CAMERA_FRONT);
+//                    cameraOrientationMap.put(cameraBackOrientation, CameraFacingEnum.CAMERA_BACK);
+                }
+            }
 
-        ArrayList<String> aiResourcesInfos = new ArrayList<>();
-
-        aiResourcesInfos.add(this.bundleDir + File.separator + "FaceWhiteningResources.bundle");
-        aiResourcesInfos.add(this.bundleDir + File.separator + "RosyResources.bundle");
-        aiResourcesInfos.add(this.bundleDir + File.separator + "TeethWhiteningResources.bundle");
-        aiResourcesInfos.add(this.bundleDir + File.separator + "FaceDetectionModel.model");
-
-
-        ZegoEffects.setResources(aiResourcesInfos);
-        String authInfo = profileParam.getString("authInfo");
-        effects = ZegoEffects.create(authInfo, this.reactContext.getApplicationContext());
-        effects.enableWhiten(true);
-        effects.enableSmooth(true);
-        effects.enableRosy(true);
-        effects.enableSharpen(true);
-        effects.enableWrinklesRemoving(true);
-        effects.enableDarkCirclesRemoving(true);
-        effects.enableBigEyes(true);
-        effects.enableFaceLifting(true);
-        effects.enableSmallMouth(true);
-        effects.enableEyesBrightening(true);
-        effects.enableNoseNarrowing(true);
-        effects.enableTeethWhitening(true);
-        effects.enableLongChin(true);
-        effects.enableForeheadShortening(true);
-        effects.enableMandibleSlimming(true);
-        effects.enableCheekboneSlimming(true);
-        effects.enableFaceShortening(true);
-        effects.enableNoseLengthening(true);
+            @Override
+            public void onFail(int i, @NotNull String s) {
+            }
+        });
 
         ZegoCustomVideoProcessConfig config = new ZegoCustomVideoProcessConfig();
         config.bufferType = ZegoVideoBufferType.GL_TEXTURE_2D;
@@ -549,22 +569,28 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
         ZegoExpressEngine.getEngine().setCustomVideoProcessHandler(new IZegoCustomVideoProcessHandler() {
             @Override
             public void onStart(ZegoPublishChannel channel) {
-                effects.initEnv(360, 640);
+                FURenderKit.getInstance().setFaceBeauty(beauty);
             }
 
             @Override
             public void onStop(ZegoPublishChannel channel) {
-                effects.uninitEnv();
+                FURenderKit.getInstance().release();
             }
 
             @Override
             public void onCapturedUnprocessedTextureData(int textureID, int width, int height, long referenceTimeMillisecond, ZegoPublishChannel channel) {
-                ZegoEffectsVideoFrameParam param = new ZegoEffectsVideoFrameParam();
-                param.format = ZegoEffectsVideoFrameFormat.RGBA32;
-                param.width = width;
-                param.height = height;
-                int processedTextureId = effects.processTexture(textureID,param);
-                ZegoExpressEngine.getEngine().sendCustomVideoProcessedTextureData(processedTextureId,width,height,referenceTimeMillisecond);
+                super.onCapturedUnprocessedTextureData(textureID, width, height, referenceTimeMillisecond, channel);
+
+                FURenderInputData input = new FURenderInputData(width,height);
+                FURenderInputData.FURenderConfig config  = input.getRenderConfig();
+                config.setOutputMatrix(FUTransformMatrixEnum.CCROT180);
+                input.setRenderConfig(config);
+                FURenderInputData.FUTexture texture =  new FURenderInputData.FUTexture(FUInputTextureEnum.FU_ADM_FLAG_COMMON_TEXTURE,textureID);
+                input.setTexture(texture);
+                FURenderOutputData out = FURenderKit.getInstance().renderWithInput(input);
+                if(out.getTexture() != null) textureID = out.getTexture().getTexId();
+
+                ZegoExpressEngine.getEngine().sendCustomVideoProcessedTextureData(textureID, width, height, referenceTimeMillisecond, channel);
             }
         });
 

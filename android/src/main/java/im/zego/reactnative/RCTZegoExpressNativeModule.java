@@ -849,16 +849,15 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
                             ((TextureView) nativeView).setOpaque(false);
                         }
                     }
-
-                    if (canvas != null) {
+		    if (canvas != null) {
                         canvas.viewMode = ZegoViewMode.getZegoViewMode(view.getInt("viewMode"));
                         canvas.backgroundColor = view.getInt("backgroundColor");
                         canvas.alphaBlend = alphaBlend;
+                        ZegoExpressEngine.getEngine().startPreview(canvas, ZegoPublishChannel.getZegoPublishChannel(channel));
+                        promise.resolve(true);
+                    }else{
+                        promise.resolve(false);
                     }
-
-                    ZegoExpressEngine.getEngine().startPreview(canvas, ZegoPublishChannel.getZegoPublishChannel(channel));
-
-                    promise.resolve(null);
                 }
             });
         } else {

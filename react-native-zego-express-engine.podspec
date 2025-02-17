@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.dependency "React"
-  s.dependency 'ZegoExpressEngine', '3.16.1'
+  s.dependency 'ZegoExpressEngine', '3.19.0'
   # ...
   # s.dependency "..."
 end

@@ -23,6 +23,8 @@ ZegoDataRecordEventHandler
 
 @property (nonatomic, assign) BOOL pluginReported;
 
+@property (nonatomic, assign) BOOL destroyWhenKilled;
+
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, ZegoMediaPlayer *> *mediaPlayerMap;
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, ZegoAudioEffectPlayer *>* audioEffectPlayerMap;
 
@@ -50,12 +52,29 @@ RCT_EXPORT_MODULE()
 -(void)startObserving {
     // Set up any upstream listeners or background tasks as necessary
     self.hasListeners = YES;
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(appWillTerminate:)
+                                                 name:UIApplicationWillTerminateNotification
+                                               object:nil];
 }
+
 
 // Will be called when this module's last listener is removed, or on dealloc.
 -(void)stopObserving {
     // Remove upstream listeners, stop unnecessary background tasks
     self.hasListeners = NO;
+
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:UIApplicationWillTerminateNotification
+                                                  object:nil];
+}
+
+
+- (void)appWillTerminate:(NSNotification *)notification {
+    if (self.destroyWhenKilled) {
+        [ZegoExpressEngine destroyEngine:nil];
+    }
 }
 
 - (void)reportPluginInfo {
@@ -177,9 +196,13 @@ RCT_EXPORT_METHOD(setEngineConfig:(NSDictionary *)config
     }
     
     // 可能需要校验 kv 的类型
-    NSDictionary *advancedConfig = [RCTConvert NSDictionary:config[@"advancedConfig"]];
+    NSMutableDictionary *advancedConfig = [[RCTConvert NSDictionary:config[@"advancedConfig"]] mutableCopy];
     if(advancedConfig) {
-        engineConfig.advancedConfig = advancedConfig;
+        if ([advancedConfig.allKeys containsObject:@"destroy_when_killed"]) {
+            self.destroyWhenKilled = [advancedConfig[@"destroy_when_killed"] isEqual:@"true"];
+            [advancedConfig removeObjectForKey:@"destroy_when_killed"];
+        }
+        engineConfig.advancedConfig = [advancedConfig copy];
     }
     
     [ZegoExpressEngine setEngineConfig:engineConfig];
@@ -2421,6 +2444,15 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
     }
 }
 
+- (void)onRecvExperimentalAPI:(NSString *)content {
+    ZGLog(@"[onRecvExperimentalAPI] content: %@", content);
+    if(self.hasListeners) {
+        [self sendEventWithName:RN_EVENT(@"recvExperimentalAPI")
+                           body:@{@"data":@[content]
+        }];
+    }
+}
+
 # pragma mark room
 - (void)onRoomStateChanged:(ZegoRoomStateChangedReason)reason errorCode:(int)errorCode extendedData:(NSDictionary *)extendedData roomID:(NSString *)roomID {
     ZGLog(@"[onRoomStateChanged] reason: %td, error: %d", reason, errorCode);
@@ -3036,6 +3068,14 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
 }
 
 #pragma mark - Network Speed Test
+
+- (void)onNetworkModeChanged:(ZegoNetworkMode)mode {
+    if(self.hasListeners) {
+        [self sendEventWithName:RN_EVENT(@"networkModeChanged")
+                           body:@{@"data":@[@(mode)]}];
+    }
+}
+
 - (void)onNetworkSpeedTestError:(int)errorCode type:(ZegoNetworkSpeedTestType)type {
     if(self.hasListeners) {
         [self sendEventWithName:RN_EVENT(@"networkSpeedTestError")
@@ -3068,6 +3108,7 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
       RN_EVENT(@"debugError"),
       RN_EVENT(@"apiCalledResult"),
       RN_EVENT(@"engineStateUpdate"),
+      RN_EVENT(@"recvExperimentalAPI"),
       RN_EVENT(@"roomStateChanged"),
       RN_EVENT(@"roomStateUpdate"),
       RN_EVENT(@"roomUserUpdate"),
@@ -3112,6 +3153,7 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
       RN_EVENT(@"mixerSoundLevelUpdate"),
       RN_EVENT(@"capturedDataRecordProgressUpdate"),
       RN_EVENT(@"capturedDataRecordStateUpdate"),
+      RN_EVENT(@"networkModeChanged"),
       RN_EVENT(@"networkSpeedTestError"),
       RN_EVENT(@"networkSpeedTestQualityUpdate"),
       RN_EVENT(@"networkQuality")

@@ -63,13 +63,6 @@ export default class ZegoExpressEngine {
      * @return SDK version.
      */
     static getVersion(): Promise<string>;
-
-
-    static getAuthInfo(appSign: string): Promise<string>;
-    static setFilter(filterName: string): void;
-    static setFilterLevel(filterLevel: number): void;
-    static setBeauty(name:string, value: number): void;
-    
     /**
      * Uploads logs to the ZEGO server.
      *
@@ -624,7 +617,8 @@ export default class ZegoExpressEngine {
      * Use cases: In the real-time scenario, developers can listen to the [onRoomStreamUpdate] event callback to obtain the delete stream information in the room where they are located, and call this interface to pass in streamID for stop play streams.
      * When to call: After [loginRoom].
      * Restrictions: None.
-     * Caution: When stopped, the attributes set for this stream previously, such as [setPlayVolume], [mutePlayStreamAudio], [mutePlayStreamVideo], etc., will be invalid and need to be reset when playing the the stream next time.
+     * Caution: 1. When stopped, the attributes set for this stream previously, such as [setPlayVolume], [mutePlayStreamAudio], [mutePlayStreamVideo], etc., will be invalid and need to be reset when playing the the stream next time.
+     *  2. After stopping pulling, the iOS platform view will clear the last frame by default and keep the background color of the view. The Android platform view remains at the last frame by default. If you need to clear the last frame, please contact ZEGO technical support.
      *
      * @param streamID Stream ID.
      */

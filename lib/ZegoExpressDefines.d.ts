@@ -381,7 +381,9 @@ export declare enum ZegoStreamResourceMode {
     /** Playing stream only from RTC. */
     OnlyRTC = 3,
     /** [Deprecated] CDN Plus mode. The SDK will automatically select the streaming resource according to the network condition. */
-    CDNPlus = 4
+    CDNPlus = 4,
+    /** Custom mode. The SDK selects the streaming resource based on the customResourceConfig parameter of the streaming settings. */
+    Custom = 5
 }
 /** Stream Switch Resource Mode */
 export declare enum ZegoStreamResourceSwitchMode {
@@ -668,6 +670,25 @@ export declare enum ZegoDataRecordState {
     /** Record successs */
     Success = 2
 }
+/** Network mode */
+export declare enum ZegoNetworkMode {
+    /** Offline (No network) */
+    Offline = 0,
+    /** Unknown network mode */
+    Unknown = 1,
+    /** Wired Ethernet (LAN) */
+    Ethernet = 2,
+    /** Wi-Fi (WLAN) */
+    WiFi = 3,
+    /** 2G Network (GPRS/EDGE/CDMA1x/etc.) */
+    Mode2G = 4,
+    /** 3G Network (WCDMA/HSDPA/EVDO/etc.) */
+    Mode3G = 5,
+    /** 4G Network (LTE) */
+    Mode4G = 6,
+    /** 5G Network (NR (NSA/SA)) */
+    Mode5G = 7
+}
 /** network speed test type */
 export declare enum ZegoNetworkSpeedTestType {
     /** uplink */
@@ -764,7 +785,9 @@ export declare enum ZegoAlphaLayoutType {
     /** Alpha channel data is to the right of RGB/YUV data. */
     Right = 2,
     /** Alpha channel data is to the bottom of RGB/YUV data. */
-    Bottom = 3
+    Bottom = 3,
+    /** Alpha channel data is to the upper right of RGB/YUV data. */
+    RightTop = 4
 }
 /** Object segmentation type. */
 export declare enum ZegoObjectSegmentationType {
@@ -867,7 +890,7 @@ export declare class ZegoEngineConfig {
     /** @deprecated This property has been deprecated since version 2.3.0, please use the [setLogConfig] function instead. */
     logConfig?: ZegoLogConfig;
     /** Other special function switches, if not set, no special function will be used by default. Please contact ZEGO technical support before use. */
-    advancedConfig?: Map<string, string>;
+    advancedConfig?: Record<string, string>;
     constructor();
 }
 /**
@@ -1511,6 +1534,7 @@ export declare abstract class ZegoMediaPlayer {
      * Use case: Developers can load the absolute path to the local resource or the URL of the network resource incoming.
      * When to call: It can be called after the engine by [createEngine] has been initialized and the media player has been created by [createMediaPlayer].
      * Related APIs: Resources can be loaded through the [loadResourceWithPosition] or [loadResourceFromMediaData] function.
+     * Caution: If the mediaplayer has already loaded resources or is in the process of playing, please first call the [stop] interface to halt the playback, and then proceed to call the interface to load the media resources; failure to do so will result in an unsuccessful load.
      *
      * @param path The absolute resource path or the URL of the network resource and cannot be null or "". Android can set this path string with Uri.
      * @return Callback result of loading media resource.
@@ -1524,6 +1548,7 @@ export declare abstract class ZegoMediaPlayer {
      * Use case: Developers can load the absolute path to the local resource or the URL of the network resource incoming.
      * When to call: Called after the engine [createEngine] has been initialized and the media player [createMediaPlayer] has been created.
      * Related APIs: Support for loading resources through the [loadResourceWithPosition] or [loadResourceFromMediaData] interface.
+     * Caution: If the mediaplayer has already loaded resources or is in the process of playing, please first call the [stop] interface to halt the playback, and then proceed to call the interface to load the media resources; failure to do so will result in an unsuccessful load.
      *
      * @param resource Multimedia resources that need to be loaded.
      * @return Callback result of loading media resource.

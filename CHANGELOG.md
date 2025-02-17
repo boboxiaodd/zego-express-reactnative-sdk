@@ -1,5 +1,33 @@
 # Change Log
 
+## 3.19.0
+
+1. Update native sdk version to 3.19.0
+
+## 3.18.1.42272
+
+1. Update native sdk version to 3.18.1.42272
+
+## 3.17.2
+
+1. Fixed crash caused by video preview and play.
+
+## 3.17.1
+
+1. Add networkModeChanged event handler.
+
+## 3.16.5
+
+1. Add recvExperimentalAPI callback.
+
+## 3.16.4
+
+1. Fix advanced configuration settings failed.
+
+## 3.16.3
+
+1. Fix crash with Android screen capture
+
 ## 3.16.2
 
 ### New Features

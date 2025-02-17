@@ -103,7 +103,7 @@ export declare enum ZegoErrorCode {
     RoomRoomExtraInfoKeyEmpty = 1002014,
     /** The key for room extra info is too long. <br>The length of the key for room extra info input by the [setRoomExtraInfo] function is greater than or equal to 128 bytes. <br>Please check the key for room extra info entered when calling the [setRoomExtraInfo] function to ensure that its length is less than 128 bytes. */
     RoomRoomExtraInfoKeyTooLong = 1002015,
-    /** The value for room extra info is too long. <br>The length of the value for room extra info input by the [setRoomExtraInfo] function is greater than or equal to 4096 bytes. <br>Please check the value for room extra info entered when calling the [setRoomExtraInfo] function to ensure that its length is less than 4096 bytes. */
+    /** The value for room extra info is too long. <br>The length of the value for room extra info input by the [setRoomExtraInfo] function is greater than or equal to 128 bytes. <br>Please check the value for room extra info entered when calling the [setRoomExtraInfo] function to ensure that its length is less than 128 bytes. */
     RoomRoomExtraInfoValueTooLong = 1002016,
     /** Description: The number of keys set in the room additional message exceeds the maximum number of supported limits. <br>Cause: called setRoomExtraInfo Different keys have been passed in multiple times. <br> Solutions: please contact ZEGO technical support. */
     RoomRoomExtraInfoExceedKeys = 1002017,
@@ -315,7 +315,7 @@ export declare enum ZegoErrorCode {
     MixerNoOutputTarget = 1005005,
     /** Description: Illegal format of mixed stream output target parameter. <br>Cause: When the target of the mixed stream output target is streamID, an illegal character is passed in. <br>Solutions: Please check whether the target of the mixed stream output target is of streamID type, if so, target only support numbers, English characters and '-', '_'. */
     MixerOutputTargetInvalid = 1005006,
-    /** Description: Failed to start the stream mixing task. <br>Cause: Requests are too frequent, exceeding the qps limit of the service. <br>Solutions: Please ensure that the qps of the mixing request is less than 100. */
+    /** Description: Failed to start the stream mixing task. <br>Cause: Requests are too frequent, exceeding the qps limit of the service. Network exceptions. An illegal mixed stream output URL was passed in. <br>Solutions: Please ensure that the qps of the mixing request is less than 100. Check the network. Pass in a valid mixed stream output URL. */
     MixerStartRequestError = 1005010,
     /** Description: Failed to stop the stream mixing task. <br>Cause: May be the cause of the network error. <br>Solutions: Please check the network ring. */
     MixerStopRequestError = 1005011,
@@ -463,6 +463,10 @@ export declare enum ZegoErrorCode {
     MediaPlayerResourceExpired = 1008011,
     /** Description: The copyrighted music resource ID is too long. <br>Cause: The copyrighted music resource ID is too long. The maximum length should be less than 512 bytes. <br> Solutions: Please copyrighted music resource ID less than 1024 bytes. */
     MediaPlayerResourceIdTooLong = 1008012,
+    /** Description: User cancel. <br>Cause: After calling [Load] to load the resource, call [Stop] to stop the player. <br> Solutions: Expected behavior when calling [Stop] while loading a resource. */
+    MediaPlayerUserCancel = 1008013,
+    /** Description: The MediaPlayer is already start. <br>Cause: [Load] has been called. <br> Solutions: Please call [Stop] first, then call [Load]. */
+    MediaPlayerAlreadyStart = 1008014,
     /** Description: The MediaPlayer failed to seek. <br>Cause: The file hasn't been loaded yet. <br> Solutions: The media player loads the media resource [loadResource] before seeking [seekTo]. */
     MediaPlayerSeekError = 1008016,
     /** Description: The MediaPlayer is configured with a video data format not supported by the platform. <br>Cause: The MediaPlayer is configured with a video data format not supported by the platform (e.g., CVPixelBuffer on iOS does not support NV21). <br> Solutions: Check the data format [setVideoHandler] supported by the current media player platform and set the correct data format. */

@@ -43,6 +43,16 @@ export interface ZegoEventListener {
      */
     engineStateUpdate: (state: zego.ZegoEngineState) => void;
     /**
+     * Experimental API callback
+     *
+     * Available since: 2.7.0
+     * Description: Receive experimental API callbacks in JSON string format.
+     * Caution: Please use this feature with the help of ZEGO Technical Support.
+     *
+     * @param content Callback content in JSON string format.
+     */
+    recvExperimentalAPI: (content: string) => void;
+    /**
      * Notification of the room connection state changes.
      *
      * Available since: 1.1.0
@@ -434,7 +444,7 @@ export interface ZegoEventListener {
      *
      * @param soundLevels The sound key-value pair of each single stream in the mixed stream, the key is the soundLevelID of each single stream, and the value is the sound value of the corresponding single stream. Value range: The value range of value is 0.0 ~ 100.0 (This value only represents the range of the sound level value returned by the callback, not the precision.).
      */
-    mixerSoundLevelUpdate: (soundLevels: Map<number, number>) => void;
+    mixerSoundLevelUpdate: (soundLevels: Record<number, number>) => void;
     /**
      * The local captured audio sound level callback.
      *
@@ -460,7 +470,7 @@ export interface ZegoEventListener {
      *
      * @param soundLevels Remote sound level hash map, key is the streamID, value is the sound level value of the corresponding streamID, value ranging from 0.0 to 100.0 (This value only represents the range of the sound level value returned by the callback, not the precision.).
      */
-    remoteSoundLevelUpdate: (soundLevels: Map<string, number>) => void;
+    remoteSoundLevelUpdate: (soundLevels: Record<string, number>) => void;
     /**
      * The callback triggered when a local device exception occurred.
      *
@@ -586,6 +596,17 @@ export interface ZegoEventListener {
      * @param channel Publishing stream channel.
      */
     capturedDataRecordProgressUpdate: (progress: zego.ZegoDataRecordProgress, config: zego.ZegoDataRecordConfig, channel: zego.ZegoPublishChannel) => void;
+    /**
+     * Network mode changed callback.
+     *
+     * Available since: 1.20.0
+     * Description: Network mode changed callback.
+     * When to trigger: This callback will be triggered when the device's network mode changed, such as switched from WiFi to 5G, or when network is disconnected.
+     * Restrictions: None.
+     *
+     * @param mode Current network mode.
+     */
+    networkModeChanged: (mode: zego.ZegoNetworkMode) => void;
     /**
      * Network speed test error callback.
      *

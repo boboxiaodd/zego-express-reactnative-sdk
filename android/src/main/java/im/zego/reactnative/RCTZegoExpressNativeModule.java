@@ -846,18 +846,12 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
         promise.resolve(null);
     }
 
-
-    @ReactMethod
-    public void secureView(final Promise promise) {
-        promise.resolve(null);
-    }
-
     @ReactMethod
     public void startPreview(final ReadableMap view, final int channel, final Promise promise) {
 
         if(view != null) {
             final int viewTag = view.getInt("reactTag");
-            UIManager uiMgr = UIManagerHelper.getUIManagerForReactTag(this.reactContext,viewTag);//getUIManager(this.reactContext, UIManagerType.FABRIC);
+            UIManager uiMgr = UIManagerHelper.getUIManagerForReactTag(this.reactContext,viewTag);
             if(uiMgr == null){
                 promise.resolve(-5);
             }else{
@@ -1177,43 +1171,38 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
 
         if (view != null) {
             final int viewTag = view.getInt("reactTag");
-            UIManagerModule uiMgr = this.reactContext.getNativeModule(UIManagerModule.class);
+            UIManager uiMgr = UIManagerHelper.getUIManagerForReactTag(this.reactContext,viewTag);
             final ZegoPlayerConfig finalConfigObj = configObj;
-            uiMgr.addUIBlock(new UIBlock() {
-                @Override
-                public void execute(NativeViewHierarchyManager nativeViewHierarchyManager) {
-                    View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
-                    ZegoCanvas canvas = null;
+            View nativeView = uiMgr.resolveView(viewTag);
+            ZegoCanvas canvas = null;
 
-                    boolean alphaBlend = view.hasKey("alphaBlend") && view.getBoolean("alphaBlend");
+            boolean alphaBlend = view.hasKey("alphaBlend") && view.getBoolean("alphaBlend");
 
-                    if(nativeView instanceof ZegoSurfaceView) {
-                        ZegoSurfaceView sv = (ZegoSurfaceView)nativeView;
-                        canvas = new ZegoCanvas(sv.getView());
-                        if (alphaBlend) {
-                            sv.setPixelFormat(PixelFormat.TRANSLUCENT);
-                            sv.setZOrderOnTop(true);
-                        }
-                    } else if(nativeView instanceof TextureView) {
-                        canvas = new ZegoCanvas(nativeView);
-                        if (alphaBlend) {
-                            ((TextureView) nativeView).setOpaque(false);
-                        }
-                    }
-
-                    if (canvas != null) {
-                        canvas.viewMode = ZegoViewMode.getZegoViewMode(view.getInt("viewMode"));
-                        canvas.backgroundColor = view.getInt("backgroundColor");
-                        canvas.alphaBlend = alphaBlend;
-                    }
-
-                    if (ZegoExpressEngine.getEngine() != null) {
-                        ZegoExpressEngine.getEngine().startPlayingStream(streamID, canvas, finalConfigObj);
-                    }
-
-                    promise.resolve(null);
+            if(nativeView instanceof ZegoSurfaceView) {
+                ZegoSurfaceView sv = (ZegoSurfaceView)nativeView;
+                canvas = new ZegoCanvas(sv.getView());
+                if (alphaBlend) {
+                    sv.setPixelFormat(PixelFormat.TRANSLUCENT);
+                    sv.setZOrderOnTop(true);
                 }
-            });
+            } else if(nativeView instanceof TextureView) {
+                canvas = new ZegoCanvas(nativeView);
+                if (alphaBlend) {
+                    ((TextureView) nativeView).setOpaque(false);
+                }
+            }
+
+            if (canvas != null) {
+                canvas.viewMode = ZegoViewMode.getZegoViewMode(view.getInt("viewMode"));
+                canvas.backgroundColor = view.getInt("backgroundColor");
+                canvas.alphaBlend = alphaBlend;
+            }
+
+            if (ZegoExpressEngine.getEngine() != null) {
+                ZegoExpressEngine.getEngine().startPlayingStream(streamID, canvas, finalConfigObj);
+            }
+
+            promise.resolve(null);
         } else {
             ZegoExpressEngine.getEngine().startPlayingStream(streamID, null, configObj);
             promise.resolve(null);
@@ -1999,42 +1988,37 @@ public class RCTZegoExpressNativeModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void mediaPlayerSetPlayerCanvas(final int index, final ReadableMap view, final Promise promise) {
         final int viewTag = view.getInt("reactTag");
-        UIManagerModule uiMgr = this.reactContext.getNativeModule(UIManagerModule.class);
-        uiMgr.addUIBlock(new UIBlock() {
-            @Override
-            public void execute(NativeViewHierarchyManager nativeViewHierarchyManager) {
-                View nativeView = nativeViewHierarchyManager.resolveView(viewTag);
-                ZegoCanvas canvas = null;
-                boolean alphaBlend = view.hasKey("alphaBlend") && view.getBoolean("alphaBlend");
+        UIManager uiMgr = UIManagerHelper.getUIManagerForReactTag(this.reactContext,viewTag);
+        View nativeView = uiMgr.resolveView(viewTag);
+        ZegoCanvas canvas = null;
+        boolean alphaBlend = view.hasKey("alphaBlend") && view.getBoolean("alphaBlend");
 
-                if(nativeView instanceof ZegoSurfaceView) {
-                    ZegoSurfaceView sv = (ZegoSurfaceView)nativeView;
-                    canvas = new ZegoCanvas(sv.getView());
-                    if (alphaBlend) {
-                        sv.setPixelFormat(PixelFormat.TRANSLUCENT);
-                        sv.setZOrderOnTop(true);
-                    }
-                } else if(nativeView instanceof TextureView) {
-                    canvas = new ZegoCanvas(nativeView);
-                    if (alphaBlend) {
-                        ((TextureView) nativeView).setOpaque(false);
-                    }
-                }
-
-                if (canvas != null) {
-                    canvas.viewMode = ZegoViewMode.getZegoViewMode(view.getInt("viewMode"));
-                    canvas.backgroundColor = view.getInt("backgroundColor");
-                    canvas.alphaBlend = alphaBlend;
-                }
-
-                ZegoMediaPlayer mediaPlayer = mediaPlayerMap.get(index);
-                if(mediaPlayer != null) {
-                    mediaPlayer.setPlayerCanvas(canvas);
-                }
-
-                promise.resolve(null);
+        if(nativeView instanceof ZegoSurfaceView) {
+            ZegoSurfaceView sv = (ZegoSurfaceView)nativeView;
+            canvas = new ZegoCanvas(sv.getView());
+            if (alphaBlend) {
+                sv.setPixelFormat(PixelFormat.TRANSLUCENT);
+                sv.setZOrderOnTop(true);
             }
-        });
+        } else if(nativeView instanceof TextureView) {
+            canvas = new ZegoCanvas(nativeView);
+            if (alphaBlend) {
+                ((TextureView) nativeView).setOpaque(false);
+            }
+        }
+
+        if (canvas != null) {
+            canvas.viewMode = ZegoViewMode.getZegoViewMode(view.getInt("viewMode"));
+            canvas.backgroundColor = view.getInt("backgroundColor");
+            canvas.alphaBlend = alphaBlend;
+        }
+
+        ZegoMediaPlayer mediaPlayer = mediaPlayerMap.get(index);
+        if(mediaPlayer != null) {
+            mediaPlayer.setPlayerCanvas(canvas);
+        }
+
+        promise.resolve(null);
     }
 
     @ReactMethod

@@ -81,7 +81,7 @@ rootProject.allprojects {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'  // From node_modules
-    implementation 'im.zego:express-video:3.20.5'
+    implementation 'im.zego:express-video:3.21.0'
 
     implementation 'com.faceunity:core_face_beauty_sticker:8.13.0'
     implementation 'com.faceunity:model_face_beauty_sticker:8.13.0'
